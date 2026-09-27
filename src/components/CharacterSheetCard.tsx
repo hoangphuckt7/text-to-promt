@@ -81,14 +81,44 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
 
   const toggles = [
     {
+      key: 'syncCharacters' as const,
+      label: 'Đồng bộ các nhân vật',
+      value: settings.syncCharacters,
+    },
+    {
+      key: 'alwaysCallByName' as const,
+      label: 'Đặt tên cho nhân vật và luôn gọi bằng tên đó',
+      value: settings.alwaysCallByName,
+    },
+    {
+      key: 'immutableCharacterDetails' as const,
+      label: 'Viết Character Sheet mô tả các chi tiết không thay đổi',
+      value: settings.immutableCharacterDetails,
+    },
+    {
+      key: 'copyFullCharacterSheet' as const,
+      label: 'Sao chép toàn bộ Character Sheet vào đầu mỗi prompt mới',
+      value: settings.copyFullCharacterSheet,
+    },
+    {
+      key: 'useEmotionsAndExpressions' as const,
+      label: 'Sử dụng các từ khóa mô tả cảm xúc và biểu cảm khuôn mặt',
+      value: settings.useEmotionsAndExpressions,
+    },
+    {
+      key: 'useCameraAndFraming' as const,
+      label: 'Sử dụng các từ khóa mô tả góc máy và bố cục khung hình',
+      value: settings.useCameraAndFraming,
+    },
+    {
       key: 'useLightingColor' as const,
       label: 'Sử dụng các từ khóa mô tả ánh sáng và màu sắc',
       value: settings.useLightingColor,
     },
     {
-      key: 'syncCharacters' as const,
+      key: 'syncOnlyPresentCharacters' as const,
       label: 'Chỉ sao chép Character Sheet xuất hiện trong phân cảnh',
-      value: settings.syncCharacters,
+      value: settings.syncOnlyPresentCharacters,
     },
     {
       key: 'useSeed' as const,
@@ -107,7 +137,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
     },
     {
       key: 'storyContinuityGoal' as const,
-      label: 'Tạo các prompt có thể tạo thành một câu chuyện liền mạch',
+      label: 'Tạo các prompt có thể tạo thành một câu chuyện liên mạch',
       value: settings.storyContinuityGoal,
     },
     {
@@ -219,6 +249,53 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
 
         {showAllToggles && (
           <div className="flex flex-col gap-1.5">
+            {/* Language Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-0.5">
+              <button
+                type="button"
+                onClick={() =>
+                  onSettingsChange({
+                    ...settings,
+                    promptLanguage: 'en',
+                  })
+                }
+                className={`w-full text-left px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                  settings.promptLanguage === 'en'
+                    ? 'bg-violet-600 text-white font-semibold shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80'
+                }`}
+              >
+                <span>English prompts language</span>
+                {settings.promptLanguage === 'en' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-violet-200" />
+                ) : (
+                  <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onSettingsChange({
+                    ...settings,
+                    promptLanguage: 'vi',
+                  })
+                }
+                className={`w-full text-left px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                  settings.promptLanguage === 'vi'
+                    ? 'bg-violet-600 text-white font-semibold shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80'
+                }`}
+              >
+                <span>Ngôn ngữ prompt tiếng việt</span>
+                {settings.promptLanguage === 'vi' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-violet-200" />
+                ) : (
+                  <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                )}
+              </button>
+            </div>
+
             {toggles.map((item) => (
               <button
                 key={item.key}

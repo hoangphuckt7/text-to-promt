@@ -38,12 +38,20 @@ Your mission is to turn story script segments into masterful, production-grade v
 Key Veo 3 Video Prompt Guidelines:
 1. LANGUAGE: The prompt text MUST be in ${lang}.
 2. DETAIL LEVEL: ${detailLevelDesc}
-3. CHARACTER CONSISTENCY: Whenever characters are specified, meticulously preserve their exact physical identifiers (clothing, hair, age, facial features, accessories) to ensure visual coherence across different scenes.
-4. CINEMATOGRAPHY: Describe realistic camera framing (e.g. cinematic close-up, wide establishing shot, medium tracking shot) and camera movement (e.g. slow push-in, orbital crane shot, gentle handheld camera sway).
-5. LIGHTING & AMBIANCE: ${settings.useLightingColor ? 'Explicitly detail lighting conditions (e.g. volumetric god rays, soft golden hour rim light, neon cyber reflections, moody chiaroscuro).' : 'Keep lighting natural to the scene.'}
-6. CONTINUITY: ${settings.continuity ? 'When generating prompts for sequential scenes, subtly link the start of the current scene to the ending motion/position of the previous scene to create seamless filmic flow.' : 'Treat each scene as a standalone dynamic frame.'}
-7. FORMATTING: Each prompt should start with the fixed prefix if provided, describe the scene action and cinematography, and conclude with the model indicator [${settings.veoModel || 'Veo 3.1 Pro'}] and aspect ratio tag (--ar ${settings.aspectRatio || '16:9'})${settings.useSeed ? ` (--seed ${settings.seed || 42890})` : ''}.
-8. OUTPUT: Output must strictly conform to the required JSON schema with no conversational fluff or markdown fences.`;
+3. CHARACTER CONSISTENCY: ${settings.syncCharacters ? 'Meticulously preserve characters across all scenes.' : 'Preserve main character traits.'}
+${settings.alwaysCallByName ? '4. CHARACTER NAMING: Always explicitly name each character and consistently refer to them by their defined name in every prompt.' : ''}
+${settings.immutableCharacterDetails ? '5. IMMUTABLE DETAILS: Write/incorporate Character Sheet details preserving unchanging core physical features (facial structure, hair, signature attire, identifiable marks).' : ''}
+${settings.copyFullCharacterSheet ? '6. CHARACTER SHEET EMBEDDING: Embed the complete character sheet descriptions at the beginning or core of the prompt.' : ''}
+${settings.individualCharacterSheets ? '7. MULTI-CHARACTER SHEETS: If multiple characters appear, clearly delineate individual character sheets for each character.' : ''}
+${settings.useEmotionsAndExpressions ? '8. EMOTIONS & FACIAL EXPRESSIONS: Explicitly describe subtle facial expressions, micro-reactions, eye emotion, and mood.' : ''}
+${settings.useCameraAndFraming ? '9. CAMERA ANGLE & FRAMING: Use precise keywords for camera angles (low-angle, high-angle, Dutch tilt, wide, close-up) and composition framing.' : ''}
+${settings.useLightingColor ? '10. LIGHTING & COLOR: Explicitly detail lighting conditions (e.g. volumetric god rays, soft golden hour rim light, neon cyber reflections, moody chiaroscuro, color temperature).' : ''}
+${settings.storyContinuityGoal ? '11. NARRATIVE FLOW: Craft prompts designed to form a smooth, coherent, flowing cinematic story.' : ''}
+${settings.continuity ? '12. SCENE CONTINUITY: Subtly link the start of the current scene to the ending motion/position of the previous scene to create seamless filmic flow.' : ''}
+${settings.matchDurationPrompts ? '13. PACING: Pace the visual action and camera movement to fit the calculated duration of the scene.' : ''}
+${settings.includeVoiceLanguage ? '14. VOICE & LANGUAGE: Mention speech delivery tone, vocal cadence, and character voice language where relevant.' : ''}
+15. FORMATTING: Each prompt should start with the fixed prefix if provided, describe the scene action and cinematography, and conclude with the model indicator [${settings.veoModel || 'Veo 3.1 Pro'}] and aspect ratio tag (--ar ${settings.aspectRatio || '16:9'})${settings.useSeed ? ` (--seed ${settings.seed || 42890})` : ''}.
+16. OUTPUT: Output must strictly conform to the required JSON schema with no conversational fluff or markdown fences.`;
 }
 
 // Batch prompt generation
@@ -73,14 +81,17 @@ app.post('/api/generate-batch', async (req: Request, res: Response) => {
       const sceneChunk = scenes.slice(i, i + CHUNK_SIZE);
 
       const scenesPayload = sceneChunk.map((sc: any) => {
-        // Filter characters for this scene if syncCharacters is enabled
+        // Filter characters for this scene if syncOnlyPresentCharacters or syncCharacters is enabled
         let relevantCharacters = characters || [];
-        if (settings.syncCharacters) {
-          relevantCharacters = (characters || []).filter((char: any) => {
+        if (settings.syncOnlyPresentCharacters || (settings.syncCharacters && !settings.copyFullCharacterSheet)) {
+          const filtered = (characters || []).filter((char: any) => {
             if (!char.name) return false;
             const reg = new RegExp(`\\b${char.name}\\b`, 'i');
             return reg.test(sc.text);
           });
+          if (filtered.length > 0 || settings.syncOnlyPresentCharacters) {
+            relevantCharacters = filtered;
+          }
         }
 
         return {
@@ -175,12 +186,15 @@ app.post('/api/generate-single', async (req: Request, res: Response) => {
       .join('; ');
 
     let relevantCharacters = characters || [];
-    if (settings.syncCharacters) {
-      relevantCharacters = (characters || []).filter((char: any) => {
+    if (settings.syncOnlyPresentCharacters || (settings.syncCharacters && !settings.copyFullCharacterSheet)) {
+      const filtered = (characters || []).filter((char: any) => {
         if (!char.name) return false;
         const reg = new RegExp(`\\b${char.name}\\b`, 'i');
         return reg.test(scene.text);
       });
+      if (filtered.length > 0 || settings.syncOnlyPresentCharacters) {
+        relevantCharacters = filtered;
+      }
     }
 
     const userPrompt = `Generate a single Google Veo 3 prompt for Scene #${scene.sceneNumber}:

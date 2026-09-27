@@ -39,12 +39,18 @@ export interface AppSettings {
   useSeed: boolean;
   seed: number;
   // Consistency & rule toggles
-  useLightingColor: boolean;
-  syncCharacters: boolean; // Chỉ sao chép Character Sheet xuất hiện trong phân cảnh
-  includeVoiceLanguage: boolean;
-  matchDurationPrompts: boolean;
-  storyContinuityGoal: boolean;
-  individualCharacterSheets: boolean;
+  syncCharacters: boolean; // Đồng bộ các nhân vật
+  alwaysCallByName: boolean; // Đặt tên cho nhân vật và luôn gọi bằng tên đó
+  immutableCharacterDetails: boolean; // Viết Character Sheet mô tả các chi tiết không thay đổi
+  copyFullCharacterSheet: boolean; // Sao chép toàn bộ Character Sheet vào đầu mỗi prompt mới
+  useEmotionsAndExpressions: boolean; // Sử dụng các từ khóa mô tả cảm xúc và biểu cảm khuôn mặt
+  useCameraAndFraming: boolean; // Sử dụng các từ khóa mô tả góc máy và bố cục khung hình
+  useLightingColor: boolean; // Sử dụng các từ khóa mô tả ánh sáng và màu sắc
+  syncOnlyPresentCharacters: boolean; // Chỉ sao chép Character Sheet xuất hiện trong phân cảnh
+  includeVoiceLanguage: boolean; // Thêm ngôn ngữ của voice nhân vật cố định theo ngôn ngữ đã chọn
+  matchDurationPrompts: boolean; // Tính toán và tạo số lượng prompt đúng với số phút
+  storyContinuityGoal: boolean; // Tạo các prompt có thể tạo thành một câu chuyện liền mạch
+  individualCharacterSheets: boolean; // Nếu có nhiều nhân vật hãy viết Character Sheet cho từng nhân vật
   continuity: boolean; // Liên kết các cảnh cuối của prompt trước với cảnh đầu của prompt sau
 }
 
