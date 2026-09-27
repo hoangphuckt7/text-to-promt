@@ -63,8 +63,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
                 <span className="font-mono font-bold tracking-wide">
                   {progress && progress.total > 0
-                    ? `⟳  ${progress.completed}/${progress.total}`
-                    : '⟳  Đang tạo...'}
+                    ? `${progress.completed}/${progress.total}`
+                    : 'Đang tạo...'}
                 </span>
               </>
             ) : (
