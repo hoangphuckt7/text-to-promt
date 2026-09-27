@@ -376,7 +376,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
           rows={2}
           className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
         />
-        <p className="text-2xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-400 mt-1">
           Đoạn mô tả này sẽ tự động được chèn vào trước tất cả các video prompt Veo 3.
         </p>
       </div>

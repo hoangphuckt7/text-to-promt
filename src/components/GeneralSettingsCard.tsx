@@ -161,7 +161,7 @@ export const GeneralSettingsCard: React.FC<GeneralSettingsCardProps> = ({
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
             THỜI LƯỢNG VIDEO MỤC TIÊU:
           </label>
-          <span className="text-2xs text-slate-400">
+          <span className="text-xs text-slate-400">
             Hệ thống tự động căn chỉnh số từ/cảnh để khớp thời lượng
           </span>
         </div>
