@@ -4,6 +4,7 @@ import { Video, Eye, Sparkles, Loader2 } from 'lucide-react';
 interface HeaderProps {
   sceneCount: number;
   isGenerating: boolean;
+  progress?: { completed: number; total: number } | null;
   onPreviewScenes: () => void;
   onGeneratePrompts: () => void;
 }
@@ -11,6 +12,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   sceneCount,
   isGenerating,
+  progress,
   onPreviewScenes,
   onGeneratePrompts,
 }) => {
@@ -50,16 +52,20 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onGeneratePrompts}
             disabled={isGenerating || sceneCount === 0}
-            className={`flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white shadow-md transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white shadow-md transition-all ${
               isGenerating || sceneCount === 0
-                ? 'bg-violet-400 cursor-not-allowed opacity-80'
-                : 'bg-violet-600 hover:bg-violet-700 hover:shadow-violet-200 active:scale-98'
+                ? 'bg-violet-400 cursor-not-allowed opacity-90'
+                : 'bg-violet-600 hover:bg-violet-700 hover:shadow-violet-200 active:scale-98 cursor-pointer'
             }`}
           >
             {isGenerating ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Đang tạo prompts...</span>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span className="font-mono font-bold tracking-wide">
+                  {progress && progress.total > 0
+                    ? `⟳  ${progress.completed}/${progress.total}`
+                    : '⟳  Đang tạo...'}
+                </span>
               </>
             ) : (
               <>

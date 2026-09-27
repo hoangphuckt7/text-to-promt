@@ -43,7 +43,7 @@ import {
   exportScenesToCsv,
 } from './utils/storage';
 import { splitStoryIntoScenes } from './utils/sceneSplitter';
-import { AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, Loader2, Square } from 'lucide-react';
 
 export default function App() {
   // State Initialization
@@ -60,10 +60,16 @@ export default function App() {
   // Scenes & Generation state
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState<{
+    completed: number;
+    total: number;
+  } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const sceneListRef = useRef<HTMLDivElement>(null);
   const previousPromptsMap = useRef<Map<string, string>>(new Map());
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isCancelledRef = useRef<boolean>(false);
 
   // Show Toast Helper
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -133,6 +139,20 @@ export default function App() {
     return genres.filter((g) => selectedGenres.includes(g.id));
   }, [genres, selectedGenres]);
 
+  // Stop prompt generation and preserve already generated prompts
+  const handleStopGeneration = () => {
+    isCancelledRef.current = true;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setIsGenerating(false);
+    setGenerationProgress(null);
+    setScenes((prev) =>
+      prev.map((s) => (s.status === 'generating' ? { ...s, status: s.prompt ? 'success' : 'idle' } : s))
+    );
+    showToast('Đã dừng tạo prompt. Các kết quả đã tạo được giữ lại.', 'info');
+  };
+
   // Generate Prompts for all scenes
   const handleGeneratePrompts = async () => {
     if (!story.trim() || scenes.length === 0) {
@@ -141,14 +161,19 @@ export default function App() {
     }
 
     setIsGenerating(true);
+    isCancelledRef.current = false;
     setScenes((prev) => prev.map((s) => ({ ...s, status: 'generating', errorMessage: undefined })));
 
     try {
       if (settings.promptType === 'summary') {
         // Generate single master summary prompt
+        setGenerationProgress({ completed: 0, total: 1 });
+        abortControllerRef.current = new AbortController();
+
         const res = await fetch('/api/generate-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: abortControllerRef.current.signal,
           body: JSON.stringify({
             story,
             characters,
@@ -158,12 +183,17 @@ export default function App() {
           }),
         });
 
+        if (isCancelledRef.current) return;
+
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.error || 'Lỗi khi tạo master prompt');
         }
 
         const data = await res.json();
+        if (isCancelledRef.current) return;
+
+        setGenerationProgress({ completed: 1, total: 1 });
         setScenes((prev) =>
           prev.map((s, idx) => {
             const promptVal = idx === 0 ? data.prompt : `(Thuộc video tóm tắt chung: xem Cảnh 1)`;
@@ -177,72 +207,127 @@ export default function App() {
         );
         showToast('Đã tạo thành công Master Prompt Veo 3 tóm tắt!', 'success');
       } else {
-        // Multi-prompt batch mode
-        const res = await fetch('/api/generate-batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            scenes: scenes.map((s) => ({
-              id: s.id,
-              sceneNumber: s.sceneNumber,
-              text: s.text,
-              words: s.words,
-              duration: s.estimatedDurationSec,
-            })),
-            characters,
-            selectedStyles: activeStyleObjects,
-            selectedGenres: activeGenreObjects,
-            settings,
-          }),
-        });
+        // Multi-prompt batch mode: process in chunks of 3 for live progress & cancel support
+        const CHUNK_SIZE = 3;
+        const totalScenes = scenes.length;
+        let currentCompleted = 0;
+        let totalSuccess = 0;
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || 'Lỗi từ máy chủ Gemini API');
+        setGenerationProgress({ completed: 0, total: totalScenes });
+
+        for (let i = 0; i < scenes.length; i += CHUNK_SIZE) {
+          if (isCancelledRef.current) break;
+
+          const currentChunk = scenes.slice(i, i + CHUNK_SIZE);
+          abortControllerRef.current = new AbortController();
+
+          try {
+            const res = await fetch('/api/generate-batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: abortControllerRef.current.signal,
+              body: JSON.stringify({
+                scenes: currentChunk.map((s) => ({
+                  id: s.id,
+                  sceneNumber: s.sceneNumber,
+                  text: s.text,
+                  words: s.words,
+                  duration: s.estimatedDurationSec,
+                })),
+                characters,
+                selectedStyles: activeStyleObjects,
+                selectedGenres: activeGenreObjects,
+                settings,
+              }),
+            });
+
+            if (isCancelledRef.current) break;
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || 'Lỗi từ máy chủ Gemini API');
+            }
+
+            const data = await res.json();
+            if (isCancelledRef.current) break;
+
+            const chunkResultsMap = new Map<number, string>();
+            if (Array.isArray(data.results)) {
+              data.results.forEach((r: any) => {
+                if (r.sceneNumber && r.prompt) {
+                  chunkResultsMap.set(r.sceneNumber, r.prompt);
+                }
+              });
+            }
+
+            totalSuccess += chunkResultsMap.size;
+
+            setScenes((prev) =>
+              prev.map((s) => {
+                const p = chunkResultsMap.get(s.sceneNumber);
+                if (p) {
+                  previousPromptsMap.current.set(s.text.trim(), p);
+                  return {
+                    ...s,
+                    prompt: p,
+                    status: 'success',
+                  };
+                } else if (currentChunk.some((c) => c.id === s.id)) {
+                  return {
+                    ...s,
+                    status: 'error',
+                    errorMessage: 'Không nhận được kết quả cho cảnh này.',
+                  };
+                }
+                return s;
+              })
+            );
+
+            currentCompleted += currentChunk.length;
+            setGenerationProgress({
+              completed: Math.min(currentCompleted, totalScenes),
+              total: totalScenes,
+            });
+          } catch (err: any) {
+            if (err.name === 'AbortError' || isCancelledRef.current) {
+              break;
+            }
+            console.error(err);
+            setScenes((prev) =>
+              prev.map((s) => {
+                if (currentChunk.some((c) => c.id === s.id)) {
+                  return { ...s, status: s.prompt ? 'success' : 'error', errorMessage: err.message };
+                }
+                return s;
+              })
+            );
+            currentCompleted += currentChunk.length;
+            setGenerationProgress({
+              completed: Math.min(currentCompleted, totalScenes),
+              total: totalScenes,
+            });
+          }
         }
 
-        const data = await res.json();
-        const resultsMap = new Map<number, string>();
-        if (Array.isArray(data.results)) {
-          data.results.forEach((r: any) => {
-            if (r.sceneNumber && r.prompt) {
-              resultsMap.set(r.sceneNumber, r.prompt);
-            }
-          });
+        if (!isCancelledRef.current) {
+          showToast(`Đã tạo thành công ${totalSuccess}/${scenes.length} video prompts!`, 'success');
         }
-
-        setScenes((prev) =>
-          prev.map((s) => {
-            const p = resultsMap.get(s.sceneNumber);
-            if (p) {
-              previousPromptsMap.current.set(s.text.trim(), p);
-              return {
-                ...s,
-                prompt: p,
-                status: 'success',
-              };
-            }
-            return {
-              ...s,
-              status: 'error',
-              errorMessage: 'Không nhận được kết quả cho cảnh này.',
-            };
-          })
-        );
-
-        showToast(`Đã tạo thành công ${resultsMap.size}/${scenes.length} video prompts!`, 'success');
       }
-
-      // Scroll to scenes view
-      handlePreviewScenes();
     } catch (err: any) {
-      console.error(err);
-      setScenes((prev) =>
-        prev.map((s) => (s.prompt ? s : { ...s, status: 'error', errorMessage: err.message }))
-      );
-      showToast(`Lỗi tạo prompt: ${err.message}`, 'error');
+      if (err.name !== 'AbortError' && !isCancelledRef.current) {
+        console.error(err);
+        setScenes((prev) =>
+          prev.map((s) => (s.prompt ? s : { ...s, status: 'error', errorMessage: err.message }))
+        );
+        showToast(`Lỗi tạo prompt: ${err.message}`, 'error');
+      }
     } finally {
       setIsGenerating(false);
+      setGenerationProgress(null);
+      abortControllerRef.current = null;
+      setScenes((prev) =>
+        prev.map((s) => (s.status === 'generating' ? { ...s, status: s.prompt ? 'success' : 'idle' } : s))
+      );
     }
   };
 
@@ -478,12 +563,66 @@ export default function App() {
       <Header
         sceneCount={scenes.length}
         isGenerating={isGenerating}
+        progress={generationProgress}
         onPreviewScenes={handlePreviewScenes}
         onGeneratePrompts={handleGeneratePrompts}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
+        {/* Real-time Progress Bar Card under Header */}
+        {isGenerating && generationProgress && (
+          <div className="mb-6 bg-white rounded-2xl border border-violet-200/90 shadow-sm p-4 sm:p-5 transition-all animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2.5">
+                <Loader2 className="w-4 h-4 text-violet-600 animate-spin shrink-0" />
+                <span className="text-sm font-semibold text-slate-800">
+                  Đang tạo prompt...{' '}
+                  <span className="font-bold text-violet-700 font-mono">
+                    {generationProgress.completed}/{generationProgress.total}
+                  </span>{' '}
+                  cảnh
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3 justify-between sm:justify-end">
+                <span className="text-xs font-bold text-violet-700 font-mono bg-violet-50 px-2.5 py-1 rounded-md border border-violet-100">
+                  {Math.round(
+                    (generationProgress.completed / Math.max(generationProgress.total, 1)) * 100
+                  )}%
+                </span>
+                <button
+                  type="button"
+                  onClick={handleStopGeneration}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                  title="Dừng & Giữ lại kết quả đã hoàn thành"
+                >
+                  <Square className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
+                  <span>Dừng & Giữ lại kết quả</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Progress Bar Track */}
+            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200/80">
+              <div
+                className="bg-linear-to-r from-violet-600 via-indigo-600 to-violet-500 h-full rounded-full transition-all duration-300 ease-out shadow-xs"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(
+                      0,
+                      Math.round(
+                        (generationProgress.completed / Math.max(generationProgress.total, 1)) * 100
+                      )
+                    )
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column (Main Workflow: Input, Scenes Breakdown & Prompts, Preset Storage) */}
           <div className="lg:col-span-7 space-y-6">
