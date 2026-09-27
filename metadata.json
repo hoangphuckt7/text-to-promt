@@ -1,0 +1,6 @@
+{
+  "name": "Veo Story-to-Prompt Builder",
+  "description": "Chuyên gia chuyển đổi câu chuyện & kịch bản thành video prompt chi tiết cho Google Veo 3 với phong cách điện ảnh và nhân vật nhất quán.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
