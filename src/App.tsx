@@ -520,6 +520,12 @@ export default function App() {
               onDeleteConfig={handleDeleteConfig}
               onResetDefaults={handleResetDefaults}
             />
+
+            <GeneralSettingsCard
+              settings={settings}
+              onSettingsChange={setSettings}
+              scenes={scenes}
+            />
           </div>
 
           {/* Right Column (Styles, Character Sheet & Consistency, General Settings) */}
@@ -544,13 +550,18 @@ export default function App() {
               onDeleteCharacter={handleDeleteCharacter}
             />
 
-            <GeneralSettingsCard
+            {/* <GeneralSettingsCard
               settings={settings}
               onSettingsChange={setSettings}
               scenes={scenes}
-            />
+            /> */}
           </div>
         </div>
+        {/* <GeneralSettingsCard
+              settings={settings}
+              onSettingsChange={setSettings}
+              scenes={scenes}
+            /> */}
       </main>
 
       {/* Floating Toast Notification */}

@@ -166,7 +166,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                   <Sparkles className="w-3.5 h-3.5 text-violet-600" />
                   Chế độ phân cảnh:
                 </span>
-                <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">
                   {settings.splitMode === 'speech_rate' ? 'Tốc độ đọc ~8s / Prompt' : 'Mỗi câu đơn = 1 Prompt'}
                 </span>
               </div>
@@ -187,11 +187,11 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                       <Clock className="w-3.5 h-3.5 text-violet-600" />
                       Tốc độ nói (~8s)
                     </span>
-                    <span className="text-2xs font-medium px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">
                       ~8s / Cảnh
                     </span>
                   </div>
-                  <p className="text-2xs text-slate-500 mt-1 leading-relaxed">
+                  <p className="text-sm text-slate-500 mt-1 leading-relaxed">
                     Tự động gom từ ngữ theo tốc độ đọc của người dẫn chuyện để khớp thời lượng chuẩn 8 giây của video Google Veo.
                   </p>
                 </button>
@@ -211,11 +211,11 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                       <MessageSquare className="w-3.5 h-3.5 text-violet-600" />
                       Từng câu đơn
                     </span>
-                    <span className="text-2xs font-medium px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">
                       1 Câu = 1 Cảnh
                     </span>
                   </div>
-                  <p className="text-2xs text-slate-500 mt-1 leading-relaxed">
+                  <p className="text-sm text-slate-500 mt-1 leading-relaxed">
                     Mỗi câu đơn hoặc lời thoại kịch bản tạo thành 1 phân cảnh độc lập, bám sát từng nhịp diễn đạt của câu chuyện.
                   </p>
                 </button>

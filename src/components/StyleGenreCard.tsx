@@ -79,7 +79,7 @@ export const StyleGenreCard: React.FC<StyleGenreCardProps> = ({
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
+        <div className="flex flex-wrap gap-1.5  pr-1">
           {styles.map((style) => {
             const isSelected = selectedStyles.includes(style.id);
             return (

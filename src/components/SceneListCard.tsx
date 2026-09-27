@@ -94,7 +94,7 @@ export const SceneListCard: React.FC<SceneListCardProps> = ({
       </div>
 
       {/* Scenes List */}
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-4 max-h-100 overflow-y-auto">
         {scenes.length === 0 ? (
           <div className="py-12 text-center text-slate-400">
             <Clock className="w-8 h-8 mx-auto mb-2 text-slate-300" />
@@ -142,7 +142,7 @@ export const SceneListCard: React.FC<SceneListCardProps> = ({
                     <button
                       type="button"
                       onClick={() => handleCopyPrompt(scene.id, scene.prompt!)}
-                      className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-semibold text-violet-700 bg-violet-100 hover:bg-violet-200 border border-violet-200 transition-all cursor-pointer"
+                      className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold text-violet-700 bg-violet-100 hover:bg-violet-200 border border-violet-200 transition-all cursor-pointer"
                       title="Sao chép nhanh prompt"
                     >
                       {copiedId === scene.id ? (
@@ -251,7 +251,7 @@ export const SceneListCard: React.FC<SceneListCardProps> = ({
                           <div className="p-3.5 pr-28 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs leading-relaxed selection:bg-violet-500 selection:text-white break-words border border-slate-800">
                             {scene.prompt}
                           </div>
-                          <button
+                          {/* <button
                             type="button"
                             onClick={() => handleCopyPrompt(scene.id, scene.prompt!)}
                             className="absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-2xs font-bold text-white bg-violet-600 hover:bg-violet-700 transition-all shadow-sm cursor-pointer active:scale-95"
@@ -268,7 +268,7 @@ export const SceneListCard: React.FC<SceneListCardProps> = ({
                                 <span>Sao chép</span>
                               </>
                             )}
-                          </button>
+                          </button> */}
                         </div>
                       )}
                     </div>
