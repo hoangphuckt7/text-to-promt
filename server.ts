@@ -23,35 +23,62 @@ const ai = new GoogleGenAI({
   },
 });
 
+async function generateContentWithRetry(params: any, maxRetries = 4): Promise<any> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await ai.models.generateContent(params);
+    } catch (error: any) {
+      const errMsg = error?.message || error?.toString?.() || '';
+      const status = error?.status || error?.code || error?.error?.code;
+      const isRateLimit =
+        status === 429 ||
+        errMsg.includes('429') ||
+        errMsg.includes('RESOURCE_EXHAUSTED') ||
+        errMsg.includes('quota') ||
+        errMsg.includes('Quota exceeded');
+
+      if (isRateLimit && attempt < maxRetries) {
+        let delaySec = 7 * attempt;
+        const match = errMsg.match(/retry in ([0-9.]+)s/i);
+        if (match && match[1]) {
+          delaySec = Math.ceil(parseFloat(match[1])) + 1;
+        }
+        console.warn(
+          `[Gemini API] Rate limit (429) hit. Waiting ${delaySec}s before auto-retry (Attempt ${attempt}/${maxRetries})...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delaySec * 1000));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 function buildSystemInstruction(settings: any): string {
-  const lang = settings.promptLanguage === 'vi' ? 'Vietnamese (Tiếng Việt)' : 'English (recommended for Veo 3)';
+  const lang = settings.promptLanguage === 'vi' ? 'Vietnamese (Tiếng Việt)' : 'English (recommended for Veo 3 / Image generation)';
   const detailLevelDesc =
     settings.promptDetail === 'high'
-      ? 'Extremely rich cinematic detail: explicit camera lenses (e.g. 35mm anamorphic, 85mm portrait), precise camera motion (pan, tilt, slow push dolly, low-angle tracking), volumetric lighting, atmospheric haze, color temperature, and micro-facial expressions.'
+      ? 'Extremely rich cinematic detail: explicit camera lenses (e.g. 35mm anamorphic, 85mm portrait), precise framing, volumetric lighting, atmospheric haze, color palette, and micro-facial expressions.'
       : settings.promptDetail === 'low'
       ? 'Concise, focused on core action and primary subject framing without overly verbose technical descriptors (~25-35 words).'
-      : 'Balanced cinematic description: clear subject, definite action, camera angle and motion, lighting mood, and aesthetic textures (~45-70 words).';
+      : 'Balanced cinematic description: clear subject, definite action, camera angle, lighting mood, and aesthetic textures (~45-70 words).';
 
-  return `You are a world-class AI video prompt engineer specializing in Google Veo 3 (${settings.veoModel || 'Veo 3.1 Pro'}).
-Your mission is to turn story script segments into masterful, production-grade video generation prompts designed specifically for Veo 3.
+  return `You are a world-class AI visual prompt engineer specializing in story image and video generation.
+Your mission is to turn story script segments into masterful, production-grade visual prompts with character consistency.
 
-Key Veo 3 Video Prompt Guidelines:
+Key Guidelines:
 1. LANGUAGE: The prompt text MUST be in ${lang}.
 2. DETAIL LEVEL: ${detailLevelDesc}
 3. CHARACTER CONSISTENCY: ${settings.syncCharacters ? 'Meticulously preserve characters across all scenes.' : 'Preserve main character traits.'}
-${settings.alwaysCallByName ? '4. CHARACTER NAMING: Always explicitly name each character and consistently refer to them by their defined name in every prompt.' : ''}
-${settings.immutableCharacterDetails ? '5. IMMUTABLE DETAILS: Write/incorporate Character Sheet details preserving unchanging core physical features (facial structure, hair, signature attire, identifiable marks).' : ''}
-${settings.copyFullCharacterSheet ? '6. CHARACTER SHEET EMBEDDING: Embed the complete character sheet descriptions at the beginning or core of the prompt.' : ''}
-${settings.individualCharacterSheets ? '7. MULTI-CHARACTER SHEETS: If multiple characters appear, clearly delineate individual character sheets for each character.' : ''}
+4. CHARACTER FIELD: Output a "character" field listing all characters/entities present in the scene, separated by semicolons (e.g. "The Well; Villagers" or "" if none).
+5. CHARACTER_INFO FIELD: Output a "character_info" field describing unchanging reference traits for each character present (e.g. "The Well: giếng đá xám tối hình tròn, vết đen nguệch ngoạc, miệng đen tuyền theo ảnh tham chiếu; Character: mô tả..."). If none, output "".
+${settings.alwaysCallByName ? '6. CHARACTER NAMING: Always explicitly name each character and consistently refer to them by their defined name in every prompt.' : ''}
+${settings.immutableCharacterDetails ? '7. IMMUTABLE DETAILS: Incorporate Character Sheet details preserving unchanging core physical features.' : ''}
 ${settings.useEmotionsAndExpressions ? '8. EMOTIONS & FACIAL EXPRESSIONS: Explicitly describe subtle facial expressions, micro-reactions, eye emotion, and mood.' : ''}
-${settings.useCameraAndFraming ? '9. CAMERA ANGLE & FRAMING: Use precise keywords for camera angles (low-angle, high-angle, Dutch tilt, wide, close-up) and composition framing.' : ''}
-${settings.useLightingColor ? '10. LIGHTING & COLOR: Explicitly detail lighting conditions (e.g. volumetric god rays, soft golden hour rim light, neon cyber reflections, moody chiaroscuro, color temperature).' : ''}
-${settings.storyContinuityGoal ? '11. NARRATIVE FLOW: Craft prompts designed to form a smooth, coherent, flowing cinematic story.' : ''}
-${settings.continuity ? '12. SCENE CONTINUITY: Subtly link the start of the current scene to the ending motion/position of the previous scene to create seamless filmic flow.' : ''}
-${settings.matchDurationPrompts ? '13. PACING: Pace the visual action and camera movement to fit the calculated duration of the scene.' : ''}
-${settings.includeVoiceLanguage ? '14. VOICE & LANGUAGE: Mention speech delivery tone, vocal cadence, and character voice language where relevant.' : ''}
-15. FORMATTING: Each prompt should start with the fixed prefix if provided, describe the scene action and cinematography, and conclude with the model indicator [${settings.veoModel || 'Veo 3.1 Pro'}] and aspect ratio tag (--ar ${settings.aspectRatio || '16:9'})${settings.useSeed ? ` (--seed ${settings.seed || 42890})` : ''}.
-16. OUTPUT: Output must strictly conform to the required JSON schema with no conversational fluff or markdown fences.`;
+${settings.useCameraAndFraming ? '9. CAMERA ANGLE & FRAMING: Use precise keywords for camera angles and composition framing.' : ''}
+${settings.useLightingColor ? '10. LIGHTING & COLOR: Explicitly detail lighting conditions and color palette.' : ''}
+11. FORMATTING & QUALITY POSTFIX: Each prompt MUST describe the visual action and scenery, incorporate the chosen Visual Styles and Content Genres, and conclude with this exact phrase: "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark."
+12. OUTPUT: Output must strictly conform to the required JSON schema with no markdown fences or extra conversational text.`;
 }
 
 // Batch prompt generation
@@ -73,9 +100,15 @@ app.post('/api/generate-batch', async (req: Request, res: Response) => {
       .map((g: any) => `${g.name}: ${g.fragment}`)
       .join('; ');
 
-    // Process scenes in small batches (up to 8 scenes per LLM call) for maximum reliability and fast responses
-    const CHUNK_SIZE = 8;
-    const allResults: { sceneNumber: number; prompt: string; detectedCharacters: string[] }[] = [];
+    // Process scenes in large batches (up to 20 scenes per LLM call) to minimize rate limit quota hits
+    const CHUNK_SIZE = 20;
+    const allResults: {
+      sceneNumber: number;
+      character?: string;
+      character_info?: string;
+      prompt: string;
+      detectedCharacters?: string[];
+    }[] = [];
 
     for (let i = 0; i < scenes.length; i += CHUNK_SIZE) {
       const sceneChunk = scenes.slice(i, i + CHUNK_SIZE);
@@ -96,6 +129,7 @@ app.post('/api/generate-batch', async (req: Request, res: Response) => {
 
         return {
           sceneNumber: sc.sceneNumber,
+          sceneCode: sc.sceneCode || `SC${sc.sceneNumber.toString().padStart(2, '0')}`,
           durationSec: sc.duration || sc.estimatedDurationSec,
           originalScript: sc.text,
           activeCharacters: relevantCharacters.map((c: any) => ({
@@ -106,21 +140,19 @@ app.post('/api/generate-batch', async (req: Request, res: Response) => {
         };
       });
 
-      const userPrompt = `Generate Google Veo 3 video prompts for the following sequential story scenes:
+      const userPrompt = `Generate cinematic story visual prompts for the following sequential story scenes:
 
 Visual Styles: ${styleDescriptions || 'Cinematic photorealism'}
 Content Genres: ${genreDescriptions || 'Narrative drama'}
 Prefix to include at start: "${settings.fixedPrefix || ''}"
 Aspect Ratio: ${settings.aspectRatio || '16:9'}
-Veo Model: ${settings.veoModel || 'Veo 3.1 Pro'}
-${settings.useSeed ? `Fixed Seed: ${settings.seed}` : ''}
 
 Scenes to convert:
 ${JSON.stringify(scenesPayload, null, 2)}
 
-Ensure every scene receives a high-quality, vivid, cinematic Veo 3 video prompt following all rules.`;
+Ensure every scene receives a high-quality, vivid prompt ending with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info filled following all rules.`;
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry({
         model: 'gemini-3.8-flash',
         contents: userPrompt,
         config: {
@@ -132,6 +164,8 @@ Ensure every scene receives a high-quality, vivid, cinematic Veo 3 video prompt 
               type: Type.OBJECT,
               properties: {
                 sceneNumber: { type: Type.INTEGER },
+                character: { type: Type.STRING },
+                character_info: { type: Type.STRING },
                 prompt: { type: Type.STRING },
                 detectedCharacters: {
                   type: Type.ARRAY,
@@ -197,7 +231,7 @@ app.post('/api/generate-single', async (req: Request, res: Response) => {
       }
     }
 
-    const userPrompt = `Generate a single Google Veo 3 prompt for Scene #${scene.sceneNumber}:
+    const userPrompt = `Generate a single cinematic visual prompt for Scene #${scene.sceneNumber}:
 Script: "${scene.text}"
 Estimated Duration: ~${scene.duration || scene.estimatedDurationSec}s
 ${previousScenePrompt ? `Previous Scene Prompt (for continuity): "${previousScenePrompt}"` : ''}
@@ -206,14 +240,12 @@ Visual Styles: ${styleDescriptions || 'Cinematic photorealism'}
 Content Genres: ${genreDescriptions || 'Narrative drama'}
 Prefix to include at start: "${settings.fixedPrefix || ''}"
 Aspect Ratio: ${settings.aspectRatio || '16:9'}
-Veo Model: ${settings.veoModel || 'Veo 3.1 Pro'}
-${settings.useSeed ? `Fixed Seed: ${settings.seed}` : ''}
 Characters in this scene:
 ${JSON.stringify(relevantCharacters, null, 2)}
 
-Output the single prompt in JSON format.`;
+Ensure prompt ends with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info are filled properly. Output in JSON format.`;
 
-    const response = await ai.models.generateContent({
+    const response = await generateContentWithRetry({
       model: 'gemini-3.8-flash',
       contents: userPrompt,
       config: {
@@ -223,6 +255,8 @@ Output the single prompt in JSON format.`;
           type: Type.OBJECT,
           properties: {
             sceneNumber: { type: Type.INTEGER },
+            character: { type: Type.STRING },
+            character_info: { type: Type.STRING },
             prompt: { type: Type.STRING },
             detectedCharacters: {
               type: Type.ARRAY,
@@ -278,7 +312,7 @@ Veo Model: ${settings.veoModel || 'Veo 3.1 Pro'}
 
 Return a single master prompt in JSON format.`;
 
-    const response = await ai.models.generateContent({
+    const response = await generateContentWithRetry({
       model: 'gemini-3.8-flash',
       contents: userPrompt,
       config: {

@@ -10,8 +10,11 @@ import {
   Sparkles,
   Clock,
   MessageSquare,
+  FileJson,
+  CheckCircle,
 } from 'lucide-react';
 import { AppSettings, StoryPreset } from '../types';
+import { isSrtFormat } from '../utils/sceneSplitter';
 
 interface StoryInputCardProps {
   story: string;
@@ -24,7 +27,9 @@ interface StoryInputCardProps {
   onDeletePreset: (id: string) => void;
   onExportTxt: () => void;
   onExportCsv: () => void;
+  onExportJson?: () => void;
   onCopyAllPrompts: () => void;
+  onCopyJson?: () => void;
   hasGeneratedPrompts: boolean;
 }
 
@@ -39,7 +44,9 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
   onDeletePreset,
   onExportTxt,
   onExportCsv,
+  onExportJson,
   onCopyAllPrompts,
+  onCopyJson,
   hasGeneratedPrompts,
 }) => {
   const [activeTab, setActiveTab] = useState<'manual' | 'library'>('manual');
@@ -88,8 +95,19 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
           </div>
         </div>
 
-        {/* Action buttons (Txt, Csv, Copy) */}
-        <div className="flex items-center gap-2">
+        {/* Action buttons (Txt, Csv, Json, Copy) */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {onExportJson && (
+            <button
+              onClick={onExportJson}
+              title="Xuất mảng JSON chuẩn cho extension tạo ảnh & render video"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer shadow-2xs"
+            >
+              <FileJson className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Xuất .JSON</span>
+            </button>
+          )}
+
           <button
             onClick={onExportTxt}
             title="Xuất toàn bộ prompt ra file TXT"
@@ -247,12 +265,30 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
               )}
             </div>
 
+            {/* SRT Detection Notice */}
+            {isSrtFormat(story) && (
+              <div className="px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800 animate-in fade-in duration-200">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  <strong>Đã phát hiện file phụ đề .SRT:</strong> Các phân cảnh đang được tự động đồng bộ theo đúng{' '}
+                  <code className="bg-emerald-100/80 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-900">
+                    subtitle_ids
+                  </code>{' '}
+                  và mốc thời gian{' '}
+                  <code className="bg-emerald-100/80 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-900">
+                    start_at / end_at
+                  </code>
+                  .
+                </span>
+              </div>
+            )}
+
             {/* Story Textarea */}
             <div className="relative">
               <textarea
                 value={story}
                 onChange={(e) => onStoryChange(e.target.value)}
-                placeholder="Dán hoặc nhập câu chuyện, kịch bản video ngắn của bạn vào đây (ví dụ: review, tin tức, truyện ma, câu chuyện lịch sử, anime, kịch bản viral TikTok / Shorts)..."
+                placeholder="Dán kịch bản truyện HOẶC dán trực tiếp nội dung file .SRT vào đây..."
                 rows={9}
                 className="w-full p-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm leading-relaxed placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 resize-y shadow-2xs font-sans transition-all"
               />

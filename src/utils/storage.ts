@@ -185,11 +185,17 @@ export function saveConfigPresets(presets: ConfigPreset[]): void {
 
 export function exportScenesToTxt(scenes: Scene[], storyTitle = 'veo3_prompts'): void {
   const content = scenes
+    // .map((s) => {
+    //   const promptText = s.prompt || `[Chưa tạo prompt]\nKịch bản gốc: ${s.text}`;
+    //   return `--- CẢNH ${s.sceneNumber} (${s.startTimeFormatted} | ~${s.estimatedDurationSec}s) ---\n${promptText}`;
+    // })
+    // .join('\n\n');
     .map((s) => {
       const promptText = s.prompt || `[Chưa tạo prompt]\nKịch bản gốc: ${s.text}`;
       return `--- CẢNH ${s.sceneNumber} (${s.startTimeFormatted} | ~${s.estimatedDurationSec}s) ---\n${promptText}`;
     })
     .join('\n\n');
+    
 
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -219,6 +225,39 @@ export function exportScenesToCsv(scenes: Scene[], storyTitle = 'veo3_prompts'):
   const a = document.createElement('a');
   a.href = url;
   a.download = `${storyTitle.replace(/\s+/g, '_')}_scenes.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export function formatSceneForExport(s: Scene, idx: number, total: number) {
+  const isLast = idx === total - 1;
+  const sceneCode = s.sceneCode || `SC${(idx + 1).toString().padStart(2, '0')}`;
+  return {
+    id: sceneCode,
+    character: s.character ?? (s.detectedCharacters ? s.detectedCharacters.join('; ') : ''),
+    character_info: s.character_info ?? '',
+    prompt: s.prompt || s.text || '',
+    subtitle_ids: s.subtitle_ids || [s.sceneNumber || idx + 1],
+    start_at: s.start_at || s.startTimeFormatted || '00:00:00,000',
+    end_at: s.end_at || (isLast ? 'AUDIO_END' : '00:00:00,000'),
+    motion: s.motion || { type: 'none', strength: 'subtle' },
+  };
+}
+
+export function getScenesJsonString(scenes: Scene[]): string {
+  const data = scenes.map((s, idx) => formatSceneForExport(s, idx, scenes.length));
+  return JSON.stringify(data, null, 2);
+}
+
+export function exportScenesToJson(scenes: Scene[], storyTitle = 'scenes'): void {
+  const jsonContent = getScenesJsonString(scenes);
+  const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${storyTitle.replace(/\s+/g, '_')}_scenes.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

@@ -41,6 +41,8 @@ import {
   saveStoredStories,
   exportScenesToTxt,
   exportScenesToCsv,
+  exportScenesToJson,
+  getScenesJsonString,
 } from './utils/storage';
 import { splitStoryIntoScenes } from './utils/sceneSplitter';
 import { AlertCircle, CheckCircle, Info, Loader2, Square } from 'lucide-react';
@@ -207,8 +209,8 @@ export default function App() {
         );
         showToast('Đã tạo thành công Master Prompt Veo 3 tóm tắt!', 'success');
       } else {
-        // Multi-prompt batch mode: process in chunks of 3 for live progress & cancel support
-        const CHUNK_SIZE = 3;
+        // Multi-prompt batch mode: process in batches of 15 scenes to avoid 429 rate limit quota
+        const CHUNK_SIZE = 15;
         const totalScenes = scenes.length;
         let currentCompleted = 0;
         let totalSuccess = 0;
@@ -230,9 +232,13 @@ export default function App() {
                 scenes: currentChunk.map((s) => ({
                   id: s.id,
                   sceneNumber: s.sceneNumber,
+                  sceneCode: s.sceneCode,
                   text: s.text,
                   words: s.words,
                   duration: s.estimatedDurationSec,
+                  subtitle_ids: s.subtitle_ids,
+                  start_at: s.start_at,
+                  end_at: s.end_at,
                 })),
                 characters,
                 selectedStyles: activeStyleObjects,
@@ -251,11 +257,11 @@ export default function App() {
             const data = await res.json();
             if (isCancelledRef.current) break;
 
-            const chunkResultsMap = new Map<number, string>();
+            const chunkResultsMap = new Map<number, any>();
             if (Array.isArray(data.results)) {
               data.results.forEach((r: any) => {
                 if (r.sceneNumber && r.prompt) {
-                  chunkResultsMap.set(r.sceneNumber, r.prompt);
+                  chunkResultsMap.set(r.sceneNumber, r);
                 }
               });
             }
@@ -264,12 +270,14 @@ export default function App() {
 
             setScenes((prev) =>
               prev.map((s) => {
-                const p = chunkResultsMap.get(s.sceneNumber);
-                if (p) {
-                  previousPromptsMap.current.set(s.text.trim(), p);
+                const r = chunkResultsMap.get(s.sceneNumber);
+                if (r) {
+                  previousPromptsMap.current.set(s.text.trim(), r.prompt);
                   return {
                     ...s,
-                    prompt: p,
+                    prompt: r.prompt,
+                    character: r.character !== undefined ? r.character : s.character,
+                    character_info: r.character_info !== undefined ? r.character_info : s.character_info,
                     status: 'success',
                   };
                 } else if (currentChunk.some((c) => c.id === s.id)) {
@@ -288,6 +296,11 @@ export default function App() {
               completed: Math.min(currentCompleted, totalScenes),
               total: totalScenes,
             });
+
+            // Polite pacing delay (2s) between batches to respect free tier RPM
+            if (i + CHUNK_SIZE < scenes.length && !isCancelledRef.current) {
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
           } catch (err: any) {
             if (err.name === 'AbortError' || isCancelledRef.current) {
               break;
@@ -353,9 +366,13 @@ export default function App() {
           scene: {
             id: targetScene.id,
             sceneNumber: targetScene.sceneNumber,
+            sceneCode: targetScene.sceneCode,
             text: targetScene.text,
             words: targetScene.words,
             duration: targetScene.estimatedDurationSec,
+            subtitle_ids: targetScene.subtitle_ids,
+            start_at: targetScene.start_at,
+            end_at: targetScene.end_at,
           },
           previousScenePrompt: prevScene?.prompt,
           nextSceneText: nextScene?.text,
@@ -379,7 +396,17 @@ export default function App() {
       previousPromptsMap.current.set(targetScene.text.trim(), data.prompt);
 
       setScenes((prev) =>
-        prev.map((s) => (s.id === sceneId ? { ...s, prompt: data.prompt, status: 'success' } : s))
+        prev.map((s) =>
+          s.id === sceneId
+            ? {
+                ...s,
+                prompt: data.prompt,
+                character: data.character !== undefined ? data.character : s.character,
+                character_info: data.character_info !== undefined ? data.character_info : s.character_info,
+                status: 'success',
+              }
+            : s
+        )
       );
       showToast(`Đã tạo xong prompt cho Cảnh ${targetScene.sceneNumber}!`, 'success');
     } catch (err: any) {
@@ -542,6 +569,17 @@ export default function App() {
     showToast('Đã xuất file .CSV thành công!', 'success');
   };
 
+  const handleExportJson = () => {
+    exportScenesToJson(scenes, 'Story_Scenes');
+    showToast('Đã xuất file .JSON chuẩn cho Extension thành công!', 'success');
+  };
+
+  const handleCopyJson = () => {
+    const jsonStr = getScenesJsonString(scenes);
+    navigator.clipboard.writeText(jsonStr);
+    showToast('Đã sao chép mảng JSON chuẩn vào clipboard!', 'success');
+  };
+
   const handleCopyAllPrompts = () => {
     const allPromptsText = scenes
       .map((s) => {
@@ -637,7 +675,9 @@ export default function App() {
               onDeletePreset={handleDeleteStoryPreset}
               onExportTxt={handleExportTxt}
               onExportCsv={handleExportCsv}
+              onExportJson={handleExportJson}
               onCopyAllPrompts={handleCopyAllPrompts}
+              onCopyJson={handleCopyJson}
               hasGeneratedPrompts={hasGeneratedPrompts}
             />
 
@@ -649,6 +689,8 @@ export default function App() {
                 onGenerateSingleScene={handleGenerateSingleScene}
                 onUpdateScenePrompt={handleUpdateScenePrompt}
                 onCopyAllPrompts={handleCopyAllPrompts}
+                onExportJson={handleExportJson}
+                onCopyJson={handleCopyJson}
               />
             </div>
 

@@ -12,13 +12,25 @@ export interface TagItem {
   isCustom?: boolean;
 }
 
+export interface MotionConfig {
+  type: string;
+  strength: string;
+}
+
 export interface Scene {
   id: number;
   sceneNumber: number;
+  sceneCode?: string; // e.g. "SC01"
   text: string;
   words: number;
   estimatedDurationSec: number;
   startTimeFormatted: string;
+  start_at?: string; // e.g. "00:00:00,000"
+  end_at?: string; // e.g. "00:00:05,400" or "AUDIO_END"
+  subtitle_ids?: number[];
+  character?: string; // e.g. "Villagers; The Well"
+  character_info?: string; // e.g. "The Well: giếng đá xám tối..."
+  motion?: MotionConfig;
   prompt?: string;
   status?: 'idle' | 'generating' | 'success' | 'error';
   errorMessage?: string;
@@ -75,9 +87,13 @@ export interface GenerateBatchRequest {
   scenes: {
     id: number;
     sceneNumber: number;
+    sceneCode?: string;
     text: string;
     words: number;
     duration: number;
+    subtitle_ids?: number[];
+    start_at?: string;
+    end_at?: string;
   }[];
   characters: Character[];
   selectedStyles: { name: string; fragment: string }[];
@@ -88,6 +104,9 @@ export interface GenerateBatchRequest {
 export interface GenerateBatchResponse {
   results: {
     sceneNumber: number;
+    sceneCode?: string;
+    character?: string;
+    character_info?: string;
     prompt: string;
     detectedCharacters?: string[];
   }[];
@@ -97,9 +116,13 @@ export interface GenerateSingleRequest {
   scene: {
     id: number;
     sceneNumber: number;
+    sceneCode?: string;
     text: string;
     words: number;
     duration: number;
+    subtitle_ids?: number[];
+    start_at?: string;
+    end_at?: string;
   };
   previousScenePrompt?: string;
   nextSceneText?: string;
