@@ -76,22 +76,22 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden transition-all">
       {/* Card Header */}
-      <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <FileText className="w-4 h-4" />
             </div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
               Nội dung câu chuyện / kịch bản
             </h2>
           </div>
-          <div className="flex items-center gap-3 mt-1 text-xs font-medium text-slate-500">
-            <span className="text-violet-700 font-semibold">{characterCount.toLocaleString()} KÝ TỰ</span>
+          <div className="flex items-center gap-3 mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="text-violet-700 dark:text-violet-400 font-semibold">{characterCount.toLocaleString()} KÝ TỰ</span>
             <span>•</span>
-            <span className="text-slate-600">{wordCount.toLocaleString()} TỪ</span>
+            <span className="text-slate-600 dark:text-slate-300">{wordCount.toLocaleString()} TỪ</span>
           </div>
         </div>
 
@@ -101,9 +101,9 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
             <button
               onClick={onExportJson}
               title="Xuất mảng JSON chuẩn cho extension tạo ảnh & render video"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer shadow-2xs"
             >
-              <FileJson className="w-3.5 h-3.5 text-emerald-600" />
+              <FileJson className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Xuất .JSON</span>
             </button>
           )}
@@ -111,34 +111,34 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
           <button
             onClick={onExportTxt}
             title="Xuất toàn bộ prompt ra file TXT"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-750 dark:hover:border-slate-600 transition-colors cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 text-slate-600" />
+            <Download className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
             <span>Xuất .TXT</span>
           </button>
 
           <button
             onClick={onExportCsv}
             title="Xuất kịch bản & prompt ra bảng CSV"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-750 dark:hover:border-slate-600 transition-colors cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 text-slate-600" />
+            <Download className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
             <span>Xuất .CSV</span>
           </button>
 
           <button
             onClick={handleCopy}
             title={hasGeneratedPrompts ? 'Sao chép tất cả prompt đã tạo' : 'Sao chép nội dung truyện'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-750 dark:hover:border-slate-600 transition-colors cursor-pointer"
           >
             {isCopied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-600">Đã chép!</span>
+                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-emerald-600 dark:text-emerald-400">Đã chép!</span>
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-slate-600" />
+                <Copy className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
                 <span>Sao chép</span>
               </>
             )}
@@ -147,13 +147,13 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
       </div>
 
       {/* Tabs: Nhập thủ công vs Thư viện mẫu */}
-      <div className="flex items-center border-b border-slate-100 px-5 bg-slate-50/50">
+      <div className="flex items-center border-b border-slate-100 dark:border-slate-800 px-5 bg-slate-50/50 dark:bg-slate-950/40">
         <button
           onClick={() => setActiveTab('manual')}
           className={`py-3 px-4 text-xs font-bold tracking-wide uppercase transition-all border-b-2 cursor-pointer ${
             activeTab === 'manual'
-              ? 'border-violet-600 text-violet-700 bg-white'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-violet-600 text-violet-700 dark:text-violet-400 bg-white dark:bg-slate-900'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
           Nhập thủ công
@@ -162,12 +162,12 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
           onClick={() => setActiveTab('library')}
           className={`py-3 px-4 text-xs font-bold tracking-wide uppercase transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
             activeTab === 'library'
-              ? 'border-violet-600 text-violet-700 bg-white'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-violet-600 text-violet-700 dark:text-violet-400 bg-white dark:bg-slate-900'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
           <span>Thư viện mẫu</span>
-          <span className="text-2xs font-semibold px-1.5 py-0.2 rounded-full bg-violet-100 text-violet-700">
+          <span className="text-2xs font-semibold px-1.5 py-0.2 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/80 dark:text-violet-300">
             {storyPresets.length}
           </span>
         </button>
@@ -178,13 +178,13 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
         {activeTab === 'manual' ? (
           <div className="space-y-4">
             {/* Chế độ phân cảnh Selector */}
-            <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/70">
+            <div className="bg-slate-50/80 dark:bg-slate-950/50 rounded-xl p-3.5 border border-slate-200/70 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
                   Chế độ phân cảnh:
                 </span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/80 dark:text-violet-300">
                   {settings.splitMode === 'speech_rate' ? 'Tốc độ đọc ~8s / Prompt' : 'Mỗi câu đơn = 1 Prompt'}
                 </span>
               </div>
@@ -196,20 +196,20 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                   onClick={() => onSettingsChange({ ...settings, splitMode: 'speech_rate' })}
                   className={`text-left p-3 rounded-xl border transition-all cursor-pointer ${
                     settings.splitMode === 'speech_rate'
-                      ? 'border-violet-600 bg-violet-50/40 ring-1 ring-violet-600/30 shadow-2xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-violet-600 bg-violet-50/40 dark:bg-violet-950/30 ring-1 ring-violet-600/30 shadow-2xs'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-violet-600" />
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
                       Tốc độ nói (~8s)
                     </span>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-violet-100 text-violet-700 dark:bg-violet-950/80 dark:text-violet-300">
                       ~8s / Cảnh
                     </span>
                   </div>
-                  <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                     Tự động gom từ ngữ theo tốc độ đọc của người dẫn chuyện để khớp thời lượng chuẩn 8 giây của video Google Veo.
                   </p>
                 </button>
@@ -220,13 +220,13 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                   onClick={() => onSettingsChange({ ...settings, splitMode: 'single_sentence' })}
                   className={`text-left p-3 rounded-xl border transition-all cursor-pointer ${
                     settings.splitMode === 'single_sentence'
-                      ? 'border-violet-600 bg-violet-50/40 ring-1 ring-violet-600/30 shadow-2xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-violet-600 bg-violet-50/40 dark:bg-violet-950/30 ring-1 ring-violet-600/30 shadow-2xs'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <MessageSquare className="w-3.5 h-3.5 text-violet-600" />
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
                       Từng câu đơn
                     </span>
                     <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">
@@ -241,7 +241,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
 
               {/* Adjust words/scene when in speech_rate mode */}
               {settings.splitMode === 'speech_rate' && (
-                <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600">
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
                   <span>Số từ mục tiêu mỗi cảnh:</span>
                   <div className="flex items-center gap-2">
                     <input
@@ -257,7 +257,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                       }
                       className="w-24 accent-violet-600 cursor-pointer"
                     />
-                    <span className="font-semibold text-violet-700 w-12 text-right">
+                    <span className="font-semibold text-violet-700 dark:text-violet-400 w-12 text-right">
                       {settings.wordsPerScene} từ
                     </span>
                   </div>
@@ -267,15 +267,15 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
 
             {/* SRT Detection Notice */}
             {isSrtFormat(story) && (
-              <div className="px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800 animate-in fade-in duration-200">
-                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="px-3.5 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center gap-2.5 text-xs text-emerald-800 dark:text-emerald-300 animate-in fade-in duration-200">
+                <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>
                   <strong>Đã phát hiện file phụ đề .SRT:</strong> Các phân cảnh đang được tự động đồng bộ theo đúng{' '}
-                  <code className="bg-emerald-100/80 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-900">
+                  <code className="bg-emerald-100/80 dark:bg-emerald-900/60 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-900 dark:text-emerald-200">
                     subtitle_ids
                   </code>{' '}
                   và mốc thời gian{' '}
-                  <code className="bg-emerald-100/80 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-900">
+                  <code className="bg-emerald-100/80 dark:bg-emerald-900/60 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-900 dark:text-emerald-200">
                     start_at / end_at
                   </code>
                   .
@@ -290,14 +290,14 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                 onChange={(e) => onStoryChange(e.target.value)}
                 placeholder="Dán kịch bản truyện HOẶC dán trực tiếp nội dung file .SRT vào đây..."
                 rows={9}
-                className="w-full p-4 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm leading-relaxed placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 resize-y shadow-2xs font-sans transition-all"
+                className="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 resize-y shadow-2xs font-sans transition-all"
               />
               {story && (
                 <div className="flex justify-between items-center mt-2 px-1">
                   <button
                     type="button"
                     onClick={() => setSaveModalOpen(true)}
-                    className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 font-medium hover:underline cursor-pointer"
+                    className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium hover:underline cursor-pointer"
                   >
                     <BookmarkPlus className="w-3.5 h-3.5" />
                     <span>Lưu vào Thư viện mẫu</span>
@@ -306,7 +306,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                   <button
                     type="button"
                     onClick={() => onStoryChange('')}
-                    className="flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 font-medium hover:underline cursor-pointer"
+                    className="flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 font-medium hover:underline cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Xoá nội dung</span>
@@ -318,7 +318,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
         ) : (
           /* Library Tab */
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
               <span>Chọn một kịch bản mẫu để nạp nhanh vào trình soạn thảo:</span>
               <button
                 type="button"
@@ -326,7 +326,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                   setNewPresetTitle('');
                   setSaveModalOpen(true);
                 }}
-                className="text-xs font-semibold text-violet-600 hover:text-violet-700 cursor-pointer"
+                className="text-xs font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer"
               >
                 + Lưu truyện hiện tại
               </button>
@@ -336,16 +336,16 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
               {storyPresets.map((preset) => (
                 <div
                   key={preset.id}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-violet-50/30 hover:border-violet-300 transition-all flex items-start justify-between gap-3 group"
+                  className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 hover:bg-violet-50/30 dark:hover:bg-violet-950/30 hover:border-violet-300 dark:hover:border-violet-800 transition-all flex items-start justify-between gap-3 group"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-violet-600 shrink-0" />
-                      <h4 className="text-sm font-bold text-slate-900 truncate">
+                      <BookOpen className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
                         {preset.title}
                       </h4>
                     </div>
-                    <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
                       {preset.story}
                     </p>
                   </div>
@@ -366,7 +366,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
                       type="button"
                       onClick={() => onDeletePreset(preset.id)}
                       title="Xóa kịch bản này"
-                      className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+                      className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -380,12 +380,12 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
 
       {/* Save Modal */}
       {saveModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-5 space-y-4">
-            <h3 className="text-base font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-2xs p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-5 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
               Lưu vào Thư viện kịch bản mẫu
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Đặt tên gợi nhớ cho câu chuyện này để bạn có thể tái sử dụng bất cứ lúc nào.
             </p>
             <input
@@ -393,14 +393,14 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
               value={newPresetTitle}
               onChange={(e) => setNewPresetTitle(e.target.value)}
               placeholder="Ví dụ: Kịch bản Trinh thám Sài Gòn tập 1..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
               autoFocus
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setSaveModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Hủy
               </button>

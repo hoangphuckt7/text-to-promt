@@ -11,7 +11,31 @@ const STORAGE_KEYS = {
   CHARACTERS: 'veo_prompt_characters',
   SELECTED_STYLES: 'veo_prompt_selected_styles',
   SELECTED_GENRES: 'veo_prompt_selected_genres',
+  THEME: 'veo_prompt_theme',
 };
+
+export type AppTheme = 'light' | 'dark';
+
+export function loadStoredTheme(): AppTheme {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.THEME);
+    if (raw === 'dark' || raw === 'light') return raw;
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  } catch {
+    return 'light';
+  }
+}
+
+export function saveStoredTheme(theme: AppTheme): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
+  } catch (e) {
+    console.error('Error saving theme', e);
+  }
+}
 
 export function loadStoredStories(): StoryPreset[] {
   try {

@@ -43,11 +43,17 @@ import {
   exportScenesToCsv,
   exportScenesToJson,
   getScenesJsonString,
+  AppTheme,
+  loadStoredTheme,
+  saveStoredTheme,
 } from './utils/storage';
 import { splitStoryIntoScenes } from './utils/sceneSplitter';
 import { AlertCircle, CheckCircle, Info, Loader2, Square } from 'lucide-react';
 
 export default function App() {
+  // Theme State
+  const [theme, setTheme] = useState<AppTheme>(loadStoredTheme);
+
   // State Initialization
   const [story, setStory] = useState<string>(loadCurrentStory);
   const [settings, setSettings] = useState<AppSettings>(loadStoredSettings);
@@ -58,6 +64,20 @@ export default function App() {
   const [characters, setCharacters] = useState<Character[]>(loadStoredCharacters);
   const [storyPresets, setStoryPresets] = useState<StoryPreset[]>(loadStoredStories);
   const [configPresets, setConfigPresets] = useState<ConfigPreset[]>(loadConfigPresets);
+
+  // Synchronize Dark Theme class on html document root
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    saveStoredTheme(theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Scenes & Generation state
   const [scenes, setScenes] = useState<Scene[]>([]);
@@ -596,7 +616,7 @@ export default function App() {
   const hasGeneratedPrompts = scenes.some((s) => s.prompt && s.prompt.trim().length > 0);
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 font-sans antialiased selection:bg-violet-600 selection:text-white flex flex-col">
+    <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-violet-600 selection:text-white flex flex-col transition-colors">
       {/* Top Header */}
       <Header
         sceneCount={scenes.length}
@@ -604,19 +624,21 @@ export default function App() {
         progress={generationProgress}
         onPreviewScenes={handlePreviewScenes}
         onGeneratePrompts={handleGeneratePrompts}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
         {/* Real-time Progress Bar Card under Header */}
         {isGenerating && generationProgress && (
-          <div className="mb-6 bg-white rounded-2xl border border-violet-200/90 shadow-sm p-4 sm:p-5 transition-all animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="mb-6 bg-white dark:bg-slate-900 rounded-2xl border border-violet-200/90 dark:border-slate-800 shadow-sm p-4 sm:p-5 transition-all animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2.5">
-                <Loader2 className="w-4 h-4 text-violet-600 animate-spin shrink-0" />
-                <span className="text-sm font-semibold text-slate-800">
+                <Loader2 className="w-4 h-4 text-violet-600 dark:text-violet-400 animate-spin shrink-0" />
+                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                   Đang tạo prompt...{' '}
-                  <span className="font-bold text-violet-700 font-mono">
+                  <span className="font-bold text-violet-700 dark:text-violet-400 font-mono">
                     {generationProgress.completed}/{generationProgress.total}
                   </span>{' '}
                   cảnh
@@ -624,7 +646,7 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-3 justify-between sm:justify-end">
-                <span className="text-xs font-bold text-violet-700 font-mono bg-violet-50 px-2.5 py-1 rounded-md border border-violet-100">
+                <span className="text-xs font-bold text-violet-700 dark:text-violet-300 font-mono bg-violet-50 dark:bg-violet-950/60 px-2.5 py-1 rounded-md border border-violet-100 dark:border-violet-800">
                   {Math.round(
                     (generationProgress.completed / Math.max(generationProgress.total, 1)) * 100
                   )}%
@@ -632,7 +654,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={handleStopGeneration}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-900/50 transition-all cursor-pointer active:scale-95 shadow-2xs"
                   title="Dừng & Giữ lại kết quả đã hoàn thành"
                 >
                   <Square className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
@@ -642,7 +664,7 @@ export default function App() {
             </div>
 
             {/* Progress Bar Track */}
-            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200/80">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200/80 dark:border-slate-700">
               <div
                 className="bg-linear-to-r from-violet-600 via-indigo-600 to-violet-500 h-full rounded-full transition-all duration-300 ease-out shadow-xs"
                 style={{

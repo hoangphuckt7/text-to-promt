@@ -153,18 +153,18 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-6">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-6">
       {/* Title */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
             <Users className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
               Nhân vật & Tính nhất quán
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Định hình ngoại hình cố định để Veo 3 luôn giữ nhân vật đồng bộ qua các cảnh
             </p>
           </div>
@@ -173,7 +173,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
         <button
           type="button"
           onClick={openAddModal}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 transition-colors cursor-pointer"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-200 dark:border-violet-800 transition-colors cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Thêm nhân vật</span>
@@ -183,27 +183,27 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
       {/* Characters List */}
       <div className="space-y-2.5">
         {characters.length === 0 ? (
-          <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
+          <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400 dark:text-slate-500">
             Chưa có nhân vật nào được tạo. Bấm "+ Thêm nhân vật" để khai báo tên và ngoại hình cố định.
           </div>
         ) : (
           characters.map((char) => (
             <div
               key={char.id}
-              className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-white hover:border-slate-300 transition-all flex items-start justify-between gap-3 group"
+              className="p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-white dark:hover:bg-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-start justify-between gap-3 group"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-xs text-violet-800 bg-violet-100/80 px-2 py-0.5 rounded-md">
+                  <span className="font-bold text-xs text-violet-800 dark:text-violet-300 bg-violet-100/80 dark:bg-violet-950/80 px-2 py-0.5 rounded-md">
                     {char.name}
                   </span>
                   {char.voice && (
-                    <span className="text-2xs text-slate-500 italic truncate max-w-[200px]">
+                    <span className="text-2xs text-slate-500 dark:text-slate-400 italic truncate max-w-[200px]">
                       {char.voice}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
                   {char.description}
                 </p>
               </div>
@@ -212,7 +212,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                 <button
                   type="button"
                   onClick={() => openEditModal(char)}
-                  className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 cursor-pointer"
+                  className="p-1 rounded text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 cursor-pointer"
                   title="Sửa nhân vật"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
@@ -220,7 +220,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                 <button
                   type="button"
                   onClick={() => onDeleteCharacter(char.id)}
-                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
                   title="Xoá nhân vật"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -234,13 +234,13 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
       {/* Consistency Toggles (Styled as vibrant chips matching user screenshots) */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             QUY TẮC ĐỒNG BỘ & TÍNH NHẤT QUÁN
           </span>
           <button
             type="button"
             onClick={() => setShowAllToggles(!showAllToggles)}
-            className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-0.5 cursor-pointer"
+            className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 flex items-center gap-0.5 cursor-pointer"
           >
             <span>{showAllToggles ? 'Thu gọn' : 'Mở rộng'}</span>
             {showAllToggles ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -309,14 +309,14 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                 className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between gap-3 cursor-pointer ${
                   item.value
                     ? 'bg-violet-600 text-white font-semibold shadow-xs'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-slate-700'
                 }`}
               >
                 <span>{item.label}</span>
                 {item.value ? (
                   <CheckCircle2 className="w-4 h-4 shrink-0 text-violet-200" />
                 ) : (
-                  <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                  <div className="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 shrink-0" />
                 )}
               </button>
             ))}
@@ -326,12 +326,12 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
 
       {/* Fixed Seed Control */}
       {settings.useSeed && (
-        <div className="p-3 rounded-xl bg-violet-50/50 border border-violet-200 flex items-center justify-between gap-3">
+        <div className="p-3 rounded-xl bg-violet-50/50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 flex items-center justify-between gap-3">
           <div>
-            <label className="block text-2xs font-bold uppercase text-violet-900">
+            <label className="block text-2xs font-bold uppercase text-violet-900 dark:text-violet-200">
               Số Seed cố định:
             </label>
-            <p className="text-2xs text-violet-600">
+            <p className="text-2xs text-violet-600 dark:text-violet-400">
               Cố định seed giúp các prompt có phong cách khuôn mặt và bối cảnh nhất quán.
             </p>
           </div>
@@ -345,13 +345,13 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                   seed: parseInt(e.target.value, 10) || 0,
                 })
               }
-              className="w-24 px-2.5 py-1 text-xs font-mono font-bold bg-white border border-violet-300 rounded-lg text-slate-900"
+              className="w-24 px-2.5 py-1 text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-violet-300 dark:border-violet-700 rounded-lg text-slate-900 dark:text-slate-100"
             />
             <button
               type="button"
               onClick={generateRandomSeed}
               title="Tạo seed ngẫu nhiên mới"
-              className="p-1.5 rounded-lg bg-white border border-violet-300 text-violet-700 hover:bg-violet-100 cursor-pointer"
+              className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-slate-800 cursor-pointer"
             >
               <Dice5 className="w-3.5 h-3.5" />
             </button>
@@ -361,7 +361,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
 
       {/* THÊM VÀO ĐẦU PROMPT (Prefix cố định) */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
           THÊM VÀO ĐẦU PROMPT (PREFIX CỐ ĐỊNH):
         </label>
         <textarea
@@ -374,24 +374,24 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
           }
           placeholder="Ví dụ: Simple 2D digital cartoon style, oversized round heads and compact bodies, studio lighting..."
           rows={2}
-          className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
+          className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
         />
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
           Đoạn mô tả này sẽ tự động được chèn vào trước tất cả các video prompt Veo 3.
         </p>
       </div>
 
       {/* Character Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-5 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-2xs p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 {editingChar ? 'Chỉnh sửa nhân vật' : 'Thêm nhân vật mới'}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -399,7 +399,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
 
             <form onSubmit={handleSaveCharacter} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Tên nhân vật (đúng như trong truyện):
                 </label>
                 <input
@@ -407,13 +407,13 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ví dụ: Minh, Mai, Đại úy Elena..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Mô tả ngoại hình cố định (tuổi, trang phục, đặc điểm nhận diện):
                 </label>
                 <textarea
@@ -421,12 +421,12 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Ví dụ: Nam 32 tuổi, thám tử tư. Tóc hơi rối, ánh mắt sắc sảo, có vết sẹo nhỏ ở đuôi mày trái. Mặc áo măng tô màu be sờn vai, bên trong là áo sơ mi trắng mở cúc..."
                   rows={4}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Chất giọng / Ngôn ngữ (tuỳ chọn):
                 </label>
                 <input
@@ -434,7 +434,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                   value={voice}
                   onChange={(e) => setVoice(e.target.value)}
                   placeholder="Ví dụ: Giọng nam trầm, điềm tĩnh, tiếng Việt"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600"
                 />
               </div>
 
@@ -442,7 +442,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   Hủy
                 </button>
