@@ -153,7 +153,7 @@ ${JSON.stringify(scenesPayload, null, 2)}
 Ensure every scene receives a high-quality, vivid prompt ending with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info filled following all rules.`;
 
       const response = await generateContentWithRetry({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-1.5-flash',
         contents: userPrompt,
         config: {
           systemInstruction,
@@ -246,7 +246,7 @@ ${JSON.stringify(relevantCharacters, null, 2)}
 Ensure prompt ends with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info are filled properly. Output in JSON format.`;
 
     const response = await generateContentWithRetry({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-1.5-flash',
       contents: userPrompt,
       config: {
         systemInstruction,
@@ -308,12 +308,11 @@ Characters:
 ${JSON.stringify(characters || [], null, 2)}
 Prefix: "${settings.fixedPrefix || ''}"
 Aspect Ratio: ${settings.aspectRatio || '16:9'}
-Veo Model: ${settings.veoModel || 'Veo 3.1 Pro'}
 
 Return a single master prompt in JSON format.`;
 
     const response = await generateContentWithRetry({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-1.5-flash',
       contents: userPrompt,
       config: {
         systemInstruction,

@@ -75,40 +75,6 @@ export const GeneralSettingsCard: React.FC<GeneralSettingsCardProps> = ({
         </div>
       </div>
 
-      {/* MODEL TẠO PROMPT / VEO MODEL */}
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-          MODEL TẠO VIDEO (GOOGLE VEO):
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { id: 'Veo 3.1 Pro' as const, label: 'Veo 3.1 Pro', sub: 'Chất lượng cao' },
-            { id: 'Veo 3.1 Fast' as const, label: 'Veo 3.1 Fast', sub: 'Nhanh (Khuyến dùng)' },
-            { id: 'Veo 3.1 Lite' as const, label: 'Veo 3.1 Lite', sub: 'Tiết kiệm' },
-          ].map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => onSettingsChange({ ...settings, veoModel: m.id })}
-              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                settings.veoModel === m.id
-                  ? 'bg-violet-600 text-white border-violet-600 shadow-xs'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 border-slate-200 dark:border-slate-700'
-              }`}
-            >
-              <div className="font-bold text-xs">{m.label}</div>
-              <div
-                className={`text-2xs mt-0.5 ${
-                  settings.veoModel === m.id ? 'text-violet-100' : 'text-slate-400 dark:text-slate-500'
-                }`}
-              >
-                {m.sub}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* LOẠI PROMPT */}
       <div>
         <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
@@ -328,7 +294,7 @@ export const GeneralSettingsCard: React.FC<GeneralSettingsCardProps> = ({
         </div>
 
         <div className="text-2xs text-violet-100/90 pt-2 border-t border-violet-400/40 leading-relaxed">
-          Quy tắc: 1 Prompt = 1 Cảnh ứng với ~8s hoặc 1 câu đơn trong kịch bản. Tỉ lệ: {settings.aspectRatio} | Model: {settings.veoModel}.
+          Quy tắc: 1 Prompt = 1 Cảnh ứng với ~8s hoặc 1 câu đơn trong kịch bản. Tỉ lệ: {settings.aspectRatio}.
         </div>
       </div>
 
