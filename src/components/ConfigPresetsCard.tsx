@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bookmark, Save, Trash2, ArrowUpRight, RotateCcw } from 'lucide-react';
+import { Bookmark, Save, Trash2, ArrowUpRight, RotateCcw, Download, Upload } from 'lucide-react';
 import { ConfigPreset } from '../types';
 
 interface ConfigPresetsCardProps {
@@ -8,6 +8,8 @@ interface ConfigPresetsCardProps {
   onLoadConfig: (preset: ConfigPreset) => void;
   onDeleteConfig: (id: string) => void;
   onResetDefaults: () => void;
+  onExportConfig: () => void;
+  onImportConfig: (file: File) => void;
 }
 
 export const ConfigPresetsCard: React.FC<ConfigPresetsCardProps> = ({
@@ -16,9 +18,19 @@ export const ConfigPresetsCard: React.FC<ConfigPresetsCardProps> = ({
   onLoadConfig,
   onDeleteConfig,
   onResetDefaults,
+  onExportConfig,
+  onImportConfig,
 }) => {
   const [configName, setConfigName] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onImportConfig(e.target.files[0]);
+      e.target.value = ''; // reset input
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,13 +44,38 @@ export const ConfigPresetsCard: React.FC<ConfigPresetsCardProps> = ({
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-4">
       {/* Title */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 flex items-center justify-center">
-          <Bookmark className="w-4 h-4" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+            <Bookmark className="w-4 h-4" />
+          </div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+            Cấu hình & Lưu trữ cá nhân
+          </h2>
         </div>
-        <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
-          Cấu hình & Lưu trữ cá nhân
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={onExportConfig}
+            title="Xuất toàn bộ cấu hình ra file"
+            className="p-2 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:text-slate-400 dark:hover:text-emerald-400 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Nhập cấu hình từ file"
+            className="p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+          >
+            <Upload className="w-4 h-4" />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json"
+            className="hidden"
+          />
+        </div>
       </div>
 
       {/* Input to save current config */}

@@ -42,6 +42,8 @@ import {
   exportScenesToTxt,
   exportScenesToCsv,
   exportScenesToJson,
+  exportAllConfigsToFile,
+  importConfigsFromFile,
   getScenesJsonString,
   AppTheme,
   loadStoredTheme,
@@ -600,6 +602,24 @@ export default function App() {
     showToast('Đã xuất file .JSON chuẩn cho Extension thành công!', 'success');
   };
 
+  const handleExportAllConfig = () => {
+    exportAllConfigsToFile();
+    showToast('Đã xuất toàn bộ cấu hình dự án thành công!', 'success');
+  };
+
+  const handleImportAllConfig = (file: File) => {
+    importConfigsFromFile(
+      file,
+      () => {
+        showToast('Nạp cấu hình thành công! Đang tải lại trang...', 'success');
+        setTimeout(() => window.location.reload(), 1500);
+      },
+      (err) => {
+        showToast(err, 'error');
+      }
+    );
+  };
+
   const handleExportPayload = () => {
     const payload = {
       scenes: scenes.map((s) => ({
@@ -759,6 +779,8 @@ export default function App() {
               onLoadConfig={handleLoadConfig}
               onDeleteConfig={handleDeleteConfig}
               onResetDefaults={handleResetDefaults}
+              onExportConfig={handleExportAllConfig}
+              onImportConfig={handleImportAllConfig}
             />
 
             <GeneralSettingsCard

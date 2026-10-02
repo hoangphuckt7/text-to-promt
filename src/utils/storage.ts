@@ -301,3 +301,52 @@ export function exportScenesToJson(scenes: Scene[], storyTitle = 'scenes'): void
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+export function exportAllConfigsToFile(): void {
+  const configs: Record<string, string> = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('veo_prompt_')) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        configs[key] = value;
+      }
+    }
+  }
+  const blob = new Blob([JSON.stringify(configs, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'veo_prompt_all_configs.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export function importConfigsFromFile(file: File, onSuccess: () => void, onError: (err: string) => void): void {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const content = e.target?.result as string;
+      const configs = JSON.parse(content);
+      
+      let importedCount = 0;
+      for (const key in configs) {
+        if (key.startsWith('veo_prompt_')) {
+          localStorage.setItem(key, configs[key]);
+          importedCount++;
+        }
+      }
+      
+      if (importedCount > 0) {
+        onSuccess();
+      } else {
+        onError('File không chứa cấu hình hợp lệ của Veo Prompt.');
+      }
+    } catch (err) {
+      onError('Lỗi khi đọc file cấu hình. Vui lòng kiểm tra lại.');
+    }
+  };
+  reader.readAsText(file);
+}
