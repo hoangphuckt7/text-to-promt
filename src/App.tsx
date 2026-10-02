@@ -229,18 +229,22 @@ export default function App() {
         );
         showToast('Đã tạo thành công Master Prompt Veo 3 tóm tắt!', 'success');
       } else {
-        // Multi-prompt batch mode: process in batches of 15 scenes to avoid 429 rate limit quota
-        const CHUNK_SIZE = 15;
-        const totalScenes = scenes.length;
-        let currentCompleted = 0;
+        // Multi-prompt batch mode: process in batches of 10 scenes to avoid LLM hallucination (missing scenes)
+        // Giảm CHUNK_SIZE xuống 4 để tránh tải nặng (503) khi text quá dài
+        const CHUNK_SIZE = 4;
+        // Only process scenes that haven't been successfully generated yet
+        const scenesToProcess = scenes.filter((s) => !s.prompt || s.status === 'error');
+        const totalScenesToProcess = scenesToProcess.length;
+        
+        let currentCompleted = scenes.length - totalScenesToProcess;
         let totalSuccess = 0;
 
-        setGenerationProgress({ completed: 0, total: totalScenes });
+        setGenerationProgress({ completed: currentCompleted, total: scenes.length });
 
-        for (let i = 0; i < scenes.length; i += CHUNK_SIZE) {
+        for (let i = 0; i < scenesToProcess.length; i += CHUNK_SIZE) {
           if (isCancelledRef.current) break;
 
-          const currentChunk = scenes.slice(i, i + CHUNK_SIZE);
+          const currentChunk = scenesToProcess.slice(i, i + CHUNK_SIZE);
           abortControllerRef.current = new AbortController();
 
           try {
@@ -298,6 +302,7 @@ export default function App() {
                     prompt: r.prompt,
                     character: r.character !== undefined ? r.character : s.character,
                     character_info: r.character_info !== undefined ? r.character_info : s.character_info,
+                    motion: r.motion !== undefined ? r.motion : s.motion,
                     status: 'success',
                   };
                 } else if (currentChunk.some((c) => c.id === s.id)) {
@@ -313,13 +318,13 @@ export default function App() {
 
             currentCompleted += currentChunk.length;
             setGenerationProgress({
-              completed: Math.min(currentCompleted, totalScenes),
-              total: totalScenes,
+              completed: Math.min(currentCompleted, scenes.length),
+              total: scenes.length,
             });
 
-            // Polite pacing delay (2s) between batches to respect free tier RPM
-            if (i + CHUNK_SIZE < scenes.length && !isCancelledRef.current) {
-              await new Promise((resolve) => setTimeout(resolve, 2000));
+            // Polite pacing delay (6s) between batches to respect free tier RPM (max 10 requests/minute)
+            if (i + CHUNK_SIZE < scenesToProcess.length && !isCancelledRef.current) {
+              await new Promise((resolve) => setTimeout(resolve, 6000));
             }
           } catch (err: any) {
             if (err.name === 'AbortError' || isCancelledRef.current) {
@@ -336,8 +341,8 @@ export default function App() {
             );
             currentCompleted += currentChunk.length;
             setGenerationProgress({
-              completed: Math.min(currentCompleted, totalScenes),
-              total: totalScenes,
+              completed: Math.min(currentCompleted, scenes.length),
+              total: scenes.length,
             });
           }
         }
@@ -423,6 +428,7 @@ export default function App() {
                 prompt: data.prompt,
                 character: data.character !== undefined ? data.character : s.character,
                 character_info: data.character_info !== undefined ? data.character_info : s.character_info,
+                motion: data.motion !== undefined ? data.motion : s.motion,
                 status: 'success',
               }
             : s
@@ -594,6 +600,36 @@ export default function App() {
     showToast('Đã xuất file .JSON chuẩn cho Extension thành công!', 'success');
   };
 
+  const handleExportPayload = () => {
+    const payload = {
+      scenes: scenes.map((s) => ({
+        id: s.id,
+        sceneNumber: s.sceneNumber,
+        sceneCode: s.sceneCode,
+        text: s.text,
+        words: s.words,
+        duration: s.estimatedDurationSec,
+        subtitle_ids: s.subtitle_ids,
+        start_at: s.start_at,
+        end_at: s.end_at,
+      })),
+      characters,
+      selectedStyles: activeStyleObjects,
+      selectedGenres: activeGenreObjects,
+      settings,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'veo3_setup_payload.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Đã tải xuống file Setup Payload! Có thể gửi cho AI để xử lý.', 'success');
+  };
+
   const handleCopyJson = () => {
     const jsonStr = getScenesJsonString(scenes);
     navigator.clipboard.writeText(jsonStr);
@@ -629,7 +665,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
+      <main className="flex-1 max-w-[90rem] w-full mx-auto px-4 lg:px-8 py-6">
         {/* Real-time Progress Bar Card under Header */}
         {isGenerating && generationProgress && (
           <div className="mb-6 bg-white dark:bg-slate-900 rounded-2xl border border-violet-200/90 dark:border-slate-800 shadow-sm p-4 sm:p-5 transition-all animate-in fade-in slide-in-from-top-2 duration-300">
@@ -698,6 +734,7 @@ export default function App() {
               onExportTxt={handleExportTxt}
               onExportCsv={handleExportCsv}
               onExportJson={handleExportJson}
+              onExportPayload={handleExportPayload}
               onCopyAllPrompts={handleCopyAllPrompts}
               onCopyJson={handleCopyJson}
               hasGeneratedPrompts={hasGeneratedPrompts}

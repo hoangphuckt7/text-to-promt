@@ -23,28 +23,34 @@ const ai = new GoogleGenAI({
   },
 });
 
-async function generateContentWithRetry(params: any, maxRetries = 4): Promise<any> {
+async function generateContentWithRetry(params: any, maxRetries = 6): Promise<any> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await ai.models.generateContent(params);
     } catch (error: any) {
       const errMsg = error?.message || error?.toString?.() || '';
       const status = error?.status || error?.code || error?.error?.code;
-      const isRateLimit =
+      const isRetryableError =
         status === 429 ||
+        status === 503 ||
+        status === 500 ||
+        status === 502 ||
         errMsg.includes('429') ||
+        errMsg.includes('503') ||
         errMsg.includes('RESOURCE_EXHAUSTED') ||
         errMsg.includes('quota') ||
-        errMsg.includes('Quota exceeded');
+        errMsg.includes('Quota exceeded') ||
+        errMsg.includes('high demand') ||
+        errMsg.includes('UNAVAILABLE');
 
-      if (isRateLimit && attempt < maxRetries) {
+      if (isRetryableError && attempt < maxRetries) {
         let delaySec = 7 * attempt;
         const match = errMsg.match(/retry in ([0-9.]+)s/i);
         if (match && match[1]) {
           delaySec = Math.ceil(parseFloat(match[1])) + 1;
         }
         console.warn(
-          `[Gemini API] Rate limit (429) hit. Waiting ${delaySec}s before auto-retry (Attempt ${attempt}/${maxRetries})...`
+          `[Gemini API] Retryable error (${status || 'Unknown'}) hit: ${errMsg.substring(0, 50)}... Waiting ${delaySec}s before auto-retry (Attempt ${attempt}/${maxRetries})...`
         );
         await new Promise((resolve) => setTimeout(resolve, delaySec * 1000));
       } else {
@@ -55,30 +61,33 @@ async function generateContentWithRetry(params: any, maxRetries = 4): Promise<an
 }
 
 function buildSystemInstruction(settings: any): string {
-  const lang = settings.promptLanguage === 'vi' ? 'Vietnamese (Tiếng Việt)' : 'English (recommended for Veo 3 / Image generation)';
+  const lang = settings.promptLanguage === 'vi' ? 'Vietnamese (Tiếng Việt)' : 'English (recommended for Image generation)';
   const detailLevelDesc =
     settings.promptDetail === 'high'
-      ? 'Extremely rich cinematic detail: explicit camera lenses (e.g. 35mm anamorphic, 85mm portrait), precise framing, volumetric lighting, atmospheric haze, color palette, and micro-facial expressions.'
+      ? 'Extremely rich photographic detail: explicit camera lenses (e.g. 35mm portrait, macro), exact lighting (e.g. cinematic, volumetric, rim light), poses, and intricate background details using ComfyUI comma-separated tags.'
       : settings.promptDetail === 'low'
-      ? 'Concise, focused on core action and primary subject framing without overly verbose technical descriptors (~25-35 words).'
-      : 'Balanced cinematic description: clear subject, definite action, camera angle, lighting mood, and aesthetic textures (~45-70 words).';
+      ? 'Concise keywords, focused purely on core subject, simple action and environment using comma-separated tags (~15-25 words).'
+      : 'Balanced photographic description: clear subject, definite pose, lighting mood, and aesthetic textures using comma-separated tags (~30-50 words).';
 
-  return `You are a world-class AI visual prompt engineer specializing in story image and video generation.
-Your mission is to turn story script segments into masterful, production-grade visual prompts with character consistency.
+  return `You are a world-class AI visual prompt engineer specializing in static image generation (e.g., Stable Diffusion, Midjourney, Flux, ComfyUI).
+Your mission is to turn story script segments into masterful, production-grade image generation prompts.
 
 Key Guidelines:
 1. LANGUAGE: The prompt text MUST be in ${lang}.
 2. DETAIL LEVEL: ${detailLevelDesc}
-3. CHARACTER CONSISTENCY: ${settings.syncCharacters ? 'Meticulously preserve characters across all scenes.' : 'Preserve main character traits.'}
-4. CHARACTER FIELD: Output a "character" field listing all characters/entities present in the scene, separated by semicolons (e.g. "The Well; Villagers" or "" if none).
-5. CHARACTER_INFO FIELD: Output a "character_info" field describing unchanging reference traits for each character present (e.g. "The Well: giếng đá xám tối hình tròn, vết đen nguệch ngoạc, miệng đen tuyền theo ảnh tham chiếu; Character: mô tả..."). If none, output "".
-${settings.alwaysCallByName ? '6. CHARACTER NAMING: Always explicitly name each character and consistently refer to them by their defined name in every prompt.' : ''}
-${settings.immutableCharacterDetails ? '7. IMMUTABLE DETAILS: Incorporate Character Sheet details preserving unchanging core physical features.' : ''}
-${settings.useEmotionsAndExpressions ? '8. EMOTIONS & FACIAL EXPRESSIONS: Explicitly describe subtle facial expressions, micro-reactions, eye emotion, and mood.' : ''}
-${settings.useCameraAndFraming ? '9. CAMERA ANGLE & FRAMING: Use precise keywords for camera angles and composition framing.' : ''}
-${settings.useLightingColor ? '10. LIGHTING & COLOR: Explicitly detail lighting conditions and color palette.' : ''}
-11. FORMATTING & QUALITY POSTFIX: Each prompt MUST describe the visual action and scenery, incorporate the chosen Visual Styles and Content Genres, and conclude with this exact phrase: "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark."
-12. OUTPUT: Output must strictly conform to the required JSON schema with no markdown fences or extra conversational text.`;
+3. COMMA-SEPARATED TAGS: Use Danbooru/ComfyUI style tag format (e.g., "1boy, solo, looking at viewer, cinematic lighting, cyberpunk city, highly detailed"). Avoid conversational sentences.
+4. CHARACTER CONSISTENCY: ${settings.syncCharacters ? 'Meticulously preserve character visual tags across all scenes.' : 'Preserve main character traits.'}
+5. CHARACTER FIELD: Output a "character" field listing all characters/entities present in the scene, separated by semicolons (e.g. "The Well; Villagers" or "" if none).
+6. CHARACTER_INFO FIELD: Output a "character_info" field describing unchanging reference traits for each character present. If none, output "".
+${settings.alwaysCallByName ? '7. CHARACTER NAMING: Always explicitly name each character and consistently refer to them by their defined name.' : ''}
+${settings.immutableCharacterDetails ? '8. IMMUTABLE DETAILS: Incorporate Character Sheet details preserving unchanging core physical features.' : ''}
+${settings.useEmotionsAndExpressions ? '9. EMOTIONS & EXPRESSIONS: Explicitly include tags for facial expressions (e.g., "smiling, crying, angry, sad eyes").' : ''}
+${settings.useCameraAndFraming ? '10. CAMERA & FRAMING: Use precise framing tags (e.g., "cowboy shot, close-up, extreme close-up, depth of field, looking up").' : ''}
+${settings.useLightingColor ? '11. LIGHTING & COLOR: Explicitly include tags for lighting and color (e.g., "neon lighting, cinematic lighting, muted colors").' : ''}
+12. NO VIDEO/MOTION PROMPTS: Do NOT use video or motion keywords like "camera panning", "zooming", "slow motion", or "time lapse" in the prompt. Focus ONLY on static photography and static poses.
+13. FORMATTING & QUALITY POSTFIX: Each prompt MUST conclude with this exact phrase: "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark."
+14. MOTION: Output a "motion" object describing the movement effect to apply to the image when editing the video (e.g. pan_right, zoom_in, zoom_out). This is NOT character animation and MUST NOT be included in the image prompt itself. Include "type" and "strength" (e.g., subtle, moderate).
+15. OUTPUT: Output must strictly conform to the required JSON schema with no markdown fences or extra text.`;
 }
 
 // Batch prompt generation
@@ -100,8 +109,8 @@ app.post('/api/generate-batch', async (req: Request, res: Response) => {
       .map((g: any) => `${g.name}: ${g.fragment}`)
       .join('; ');
 
-    // Process scenes in large batches (up to 20 scenes per LLM call) to minimize rate limit quota hits
-    const CHUNK_SIZE = 20;
+    // Process scenes in small batches (up to 10 scenes per LLM call) to prevent LLM from omitting scenes
+    const CHUNK_SIZE = 10;
     const allResults: {
       sceneNumber: number;
       character?: string;
@@ -153,7 +162,7 @@ ${JSON.stringify(scenesPayload, null, 2)}
 Ensure every scene receives a high-quality, vivid prompt ending with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info filled following all rules.`;
 
       const response = await generateContentWithRetry({
-        model: 'gemini-1.5-flash',
+        model: settings.geminiModel || 'gemini-3.5-flash',
         contents: userPrompt,
         config: {
           systemInstruction,
@@ -170,6 +179,13 @@ Ensure every scene receives a high-quality, vivid prompt ending with "Một ản
                 detectedCharacters: {
                   type: Type.ARRAY,
                   items: { type: Type.STRING },
+                },
+                motion: {
+                  type: Type.OBJECT,
+                  properties: {
+                    type: { type: Type.STRING },
+                    strength: { type: Type.STRING },
+                  },
                 },
               },
               required: ['sceneNumber', 'prompt'],
@@ -246,7 +262,7 @@ ${JSON.stringify(relevantCharacters, null, 2)}
 Ensure prompt ends with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info are filled properly. Output in JSON format.`;
 
     const response = await generateContentWithRetry({
-      model: 'gemini-1.5-flash',
+      model: settings.geminiModel || 'gemini-3.5-flash',
       contents: userPrompt,
       config: {
         systemInstruction,
@@ -261,6 +277,13 @@ Ensure prompt ends with "Một ảnh tại một thời điểm, 16:9, không ch
             detectedCharacters: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
+            },
+            motion: {
+              type: Type.OBJECT,
+              properties: {
+                type: { type: Type.STRING },
+                strength: { type: Type.STRING },
+              },
             },
           },
           required: ['sceneNumber', 'prompt'],
@@ -312,7 +335,7 @@ Aspect Ratio: ${settings.aspectRatio || '16:9'}
 Return a single master prompt in JSON format.`;
 
     const response = await generateContentWithRetry({
-      model: 'gemini-1.5-flash',
+      model: settings.geminiModel || 'gemini-3.5-flash',
       contents: userPrompt,
       config: {
         systemInstruction,
@@ -333,6 +356,43 @@ Return a single master prompt in JSON format.`;
     console.error('Error generating summary prompt:', error);
     res.status(500).json({
       error: error.message || 'Failed to generate summary prompt',
+    });
+  }
+});
+
+app.post('/api/test-api-key', async (req, res) => {
+  try {
+    const { settings } = req.body;
+    const model = settings?.geminiModel || 'gemini-3.5-flash';
+    
+    // Perform a very fast, cheap generation to test the key
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: "Reply with the exact word 'OK'",
+    });
+
+    if (response.text?.includes('OK')) {
+      res.json({ success: true, message: `API Key hợp lệ! Đang dùng model: ${model}` });
+    } else {
+      res.json({ success: true, message: `Đã kết nối thành công tới ${model}.` });
+    }
+  } catch (error: any) {
+    console.error('API Test Error:', error);
+    const status = error?.status || error?.code || error?.error?.code;
+    const errMsg = error?.message || error?.toString?.() || '';
+    
+    let userMsg = errMsg;
+    if (status === 429 || errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
+      userMsg = 'Hết Quota (429)! Bạn đã dùng hết số lượt miễn phí hoặc quá tải trong phút này.';
+    } else if (status === 404 || errMsg.includes('not found')) {
+      userMsg = 'Lỗi 404: Model này không khả dụng cho API Key của bạn (Hãy thử model khác).';
+    } else if (status === 401 || status === 403 || errMsg.includes('API_KEY_INVALID')) {
+      userMsg = 'Lỗi xác thực: API Key không hợp lệ hoặc bị vô hiệu hóa.';
+    }
+
+    res.status(500).json({
+      success: false,
+      message: userMsg
     });
   }
 });

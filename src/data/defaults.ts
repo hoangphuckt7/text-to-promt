@@ -84,11 +84,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   targetDurationMinutes: 'auto',
   customMinutes: 3,
   promptType: 'multi',
-  promptLanguage: 'en', // Veo 3 generates best with English prompts
-  veoModel: 'Veo 3.1 Pro',
+  promptLanguage: 'en', // Image models generate best with English prompts
+  geminiModel: 'gemini-3.5-flash',
   promptDetail: 'medium',
   aspectRatio: '16:9',
-  fixedPrefix: 'Cinematic filmic quality, realistic textures, Veo 3 camera direction:',
+  fixedPrefix: 'Cinematic filmic quality, realistic textures, highly detailed:',
   useSeed: false,
   seed: 42890,
   syncCharacters: true,

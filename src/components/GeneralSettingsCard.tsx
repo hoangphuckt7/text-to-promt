@@ -58,6 +58,24 @@ export const GeneralSettingsCard: React.FC<GeneralSettingsCardProps> = ({
     setCustomMinModal(false);
   };
 
+  const [isTestingApi, setIsTestingApi] = useState(false);
+  const handleTestApiKey = async () => {
+    setIsTestingApi(true);
+    try {
+      const res = await fetch('/api/test-api-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings }),
+      });
+      const data = await res.json();
+      alert(data.message);
+    } catch (err: any) {
+      alert('Không thể kết nối đến máy chủ: ' + err.message);
+    } finally {
+      setIsTestingApi(false);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-6">
       {/* Title */}
@@ -70,8 +88,55 @@ export const GeneralSettingsCard: React.FC<GeneralSettingsCardProps> = ({
             Cài đặt chung
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Tùy biến model Veo, thời lượng video, tỉ lệ và độ chi tiết prompt
+            Tùy biến model AI, thời lượng video, tỉ lệ và độ chi tiết prompt
           </p>
+        </div>
+      </div>
+
+      {/* MODEL TẠO PROMPT (GEMINI) */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            MODEL AI TẠO PROMPT (GEMINI):
+          </label>
+          <button
+            type="button"
+            onClick={handleTestApiKey}
+            disabled={isTestingApi}
+            className="flex items-center gap-1.5 px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-400 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+          >
+            {isTestingApi ? <div className="w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div> : '⚡'}
+            {isTestingApi ? 'Đang test...' : 'Test API Key'}
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {[
+            { id: 'gemini-3.5-flash', label: '3.5 Flash', sub: 'Miễn phí (Hạn mức cao)' },
+            { id: 'gemini-3.8-flash', label: '3.8 Flash', sub: 'Miễn phí (20 lượt)' },
+            { id: 'gemini-3.1-pro-preview', label: '3.1 Pro Preview', sub: 'Trả phí (Cần Visa)' },
+          ].map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => onSettingsChange({ ...settings, geminiModel: m.id as any })}
+              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                settings.geminiModel === m.id || (!settings.geminiModel && m.id === 'gemini-3.5-flash')
+                  ? 'bg-violet-600 text-white border-violet-600 shadow-xs'
+                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 border-slate-200 dark:border-slate-700'
+              }`}
+            >
+              <div className="font-bold text-xs">{m.label}</div>
+              <div
+                className={`text-2xs mt-0.5 ${
+                  settings.geminiModel === m.id || (!settings.geminiModel && m.id === 'gemini-3.5-flash')
+                    ? 'text-violet-100'
+                    : 'text-slate-400 dark:text-slate-500'
+                }`}
+              >
+                {m.sub}
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 

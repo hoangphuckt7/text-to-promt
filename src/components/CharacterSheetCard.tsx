@@ -203,7 +203,7 @@ export const CharacterSheetCard: React.FC<CharacterSheetCardProps> = ({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                <p className="text-xs text-slate-600  mt-1.5 leading-relaxed">
                   {char.description}
                 </p>
               </div>

@@ -28,6 +28,7 @@ interface StoryInputCardProps {
   onExportTxt: () => void;
   onExportCsv: () => void;
   onExportJson?: () => void;
+  onExportPayload?: () => void;
   onCopyAllPrompts: () => void;
   onCopyJson?: () => void;
   hasGeneratedPrompts: boolean;
@@ -45,6 +46,7 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
   onExportTxt,
   onExportCsv,
   onExportJson,
+  onExportPayload,
   onCopyAllPrompts,
   onCopyJson,
   hasGeneratedPrompts,
@@ -95,8 +97,19 @@ export const StoryInputCard: React.FC<StoryInputCardProps> = ({
           </div>
         </div>
 
-        {/* Action buttons (Txt, Csv, Json, Copy) */}
+        {/* Action buttons (Txt, Csv, Json, Copy, Payload) */}
         <div className="flex items-center gap-2 flex-wrap">
+          {onExportPayload && (
+            <button
+              onClick={onExportPayload}
+              title="Xuất file Setup Payload JSON để gửi cho AI làm tiếp khi tool bị lỗi API"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/60 transition-colors cursor-pointer shadow-2xs"
+            >
+              <FileJson className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Xuất Payload AI</span>
+            </button>
+          )}
+
           {onExportJson && (
             <button
               onClick={onExportJson}

@@ -44,7 +44,7 @@ export interface AppSettings {
   customMinutes?: number;
   promptType: 'multi' | 'summary';
   promptLanguage: 'en' | 'vi';
-  veoModel: 'Veo 3.1 Pro' | 'Veo 3.1 Fast' | 'Veo 3.1 Lite';
+  geminiModel?: 'gemini-3.5-flash' | 'gemini-3.8-flash' | 'gemini-3.1-pro-preview';
   promptDetail: 'low' | 'medium' | 'high';
   aspectRatio: '16:9' | '9:16' | '1:1';
   fixedPrefix: string;

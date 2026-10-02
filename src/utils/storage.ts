@@ -272,6 +272,20 @@ export function formatSceneForExport(s: Scene, idx: number, total: number) {
 
 export function getScenesJsonString(scenes: Scene[]): string {
   const data = scenes.map((s, idx) => formatSceneForExport(s, idx, scenes.length));
+  
+  if (data.length > 0) {
+    data[0].start_at = '00:00:00,000';
+  }
+
+  // Make scenes contiguous by setting end_at of current scene to start_at of next scene
+  for (let i = 0; i < data.length - 1; i++) {
+    data[i].end_at = data[i + 1].start_at;
+  }
+  
+  if (data.length > 0) {
+    data[data.length - 1].end_at = 'AUDIO_END';
+  }
+  
   return JSON.stringify(data, null, 2);
 }
 

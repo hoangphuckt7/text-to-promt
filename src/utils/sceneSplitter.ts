@@ -176,7 +176,8 @@ export function splitStoryIntoScenes(
       const detected = characters
         .filter((char) => {
           if (!char.name || !char.name.trim()) return false;
-          const regex = new RegExp(`\\b${escapeRegExp(char.name.trim())}\\b`, 'i');
+          // Fix Vietnamese unicode word boundary issue instead of standard \b
+        const regex = new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escapeRegExp(char.name.trim())}(?:[^\\p{L}\\p{N}_]|$)`, 'iu');
           return regex.test(g.text);
         })
         .map((c) => c.name);
@@ -314,7 +315,8 @@ export function splitStoryIntoScenes(
     const detected = characters
       .filter((char) => {
         if (!char.name || !char.name.trim()) return false;
-        const regex = new RegExp(`\\b${escapeRegExp(char.name.trim())}\\b`, 'i');
+        // Fix Vietnamese unicode word boundary issue instead of standard \b
+        const regex = new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escapeRegExp(char.name.trim())}(?:[^\\p{L}\\p{N}_]|$)`, 'iu');
         return regex.test(chunk.text);
       })
       .map((c) => c.name);
