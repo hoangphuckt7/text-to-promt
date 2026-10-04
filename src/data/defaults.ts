@@ -104,6 +104,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   storyContinuityGoal: true,
   individualCharacterSheets: true,
   continuity: true,
+  targetPlatform: 'image_and_motion',
 };
 
 export const SAMPLE_STORIES: StoryPreset[] = [

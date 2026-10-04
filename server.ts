@@ -61,33 +61,63 @@ async function generateContentWithRetry(params: any, maxRetries = 6): Promise<an
 }
 
 function buildSystemInstruction(settings: any): string {
-  const lang = settings.promptLanguage === 'vi' ? 'Vietnamese (Tiếng Việt)' : 'English (recommended for Image generation)';
-  const detailLevelDesc =
-    settings.promptDetail === 'high'
+  const isVeo3 = settings.targetPlatform === 'veo3_video';
+  const lang = settings.promptLanguage === 'vi' ? 'Vietnamese (Tiếng Việt)' : 'English';
+  
+  let detailLevelDesc = '';
+  if (isVeo3) {
+    detailLevelDesc = settings.promptDetail === 'high'
+      ? 'Extremely rich cinematic video description: explicit camera movements (e.g. slow pan, tracking shot, dolly in), precise subject actions, continuous motion, and evolving lighting/environments.'
+      : settings.promptDetail === 'low'
+      ? 'Concise video description, focusing on the core action, subject movement, and camera motion in full sentences.'
+      : 'Balanced cinematic description: clear subject action, definite camera movement, lighting mood, and continuous flow in natural sentences.';
+  } else {
+    detailLevelDesc = settings.promptDetail === 'high'
       ? 'Extremely rich photographic detail: explicit camera lenses (e.g. 35mm portrait, macro), exact lighting (e.g. cinematic, volumetric, rim light), poses, and intricate background details using ComfyUI comma-separated tags.'
       : settings.promptDetail === 'low'
       ? 'Concise keywords, focused purely on core subject, simple action and environment using comma-separated tags (~15-25 words).'
       : 'Balanced photographic description: clear subject, definite pose, lighting mood, and aesthetic textures using comma-separated tags (~30-50 words).';
+  }
 
-  return `You are a world-class AI visual prompt engineer specializing in static image generation (e.g., Stable Diffusion, Midjourney, Flux, ComfyUI).
-Your mission is to turn story script segments into masterful, production-grade image generation prompts.
+  const roleDesc = isVeo3 
+    ? 'You are a world-class AI visual prompt engineer specializing in cinematic text-to-video generation (e.g., Google Veo 3, Sora, Runway Gen-3).\nYour mission is to turn story script segments into masterful, production-grade video generation prompts.'
+    : 'You are a world-class AI visual prompt engineer specializing in static image generation (e.g., Stable Diffusion, Midjourney, Flux, ComfyUI).\nYour mission is to turn story script segments into masterful, production-grade image generation prompts.';
+
+  const tagGuideline = isVeo3
+    ? '3. NATURAL LANGUAGE: Write prompts in highly descriptive, cinematic natural language sentences. Describe motion smoothly.'
+    : '3. COMMA-SEPARATED TAGS: Use Danbooru/ComfyUI style tag format (e.g., "1boy, solo, looking at viewer, cinematic lighting, cyberpunk city, highly detailed"). Avoid conversational sentences.';
+
+  const videoMotionRule = isVeo3
+    ? '12. MOTION & CINEMATOGRAPHY: Explicitly describe camera movements (pan, tilt, zoom, dolly, tracking, drone shot) and continuous subject actions (walking, turning, talking, fighting). The prompt must describe a moving video, not a static image.'
+    : '12. NO VIDEO/MOTION PROMPTS: Do NOT use video or motion keywords like "camera panning", "zooming", "slow motion", or "time lapse" in the prompt. Focus ONLY on static photography and static poses.';
+
+  const postfixRule = isVeo3
+    ? '' // No postfix needed for video, or we could add a video specific one, but none is strictly required.
+    : '13. FORMATTING & QUALITY POSTFIX: Each prompt MUST conclude with this exact phrase: "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark."';
+
+  const motionObjectRule = isVeo3
+    ? '14. MOTION OBJECT: Since this is a video prompt, output a "motion" object with type "none" and strength "none", as the motion is already described in the text prompt.'
+    : '14. MOTION OBJECT: Output a "motion" object describing the movement effect to apply to the image when editing the video (e.g. pan_right, zoom_in, zoom_out). This is NOT character animation and MUST NOT be included in the image prompt itself. Include "type" and "strength" (e.g., subtle, moderate).';
+
+  return `${roleDesc}
 
 Key Guidelines:
 1. LANGUAGE: The prompt text MUST be in ${lang}.
 2. DETAIL LEVEL: ${detailLevelDesc}
-3. COMMA-SEPARATED TAGS: Use Danbooru/ComfyUI style tag format (e.g., "1boy, solo, looking at viewer, cinematic lighting, cyberpunk city, highly detailed"). Avoid conversational sentences.
-4. CHARACTER CONSISTENCY: ${settings.syncCharacters ? 'Meticulously preserve character visual tags across all scenes.' : 'Preserve main character traits.'}
+${tagGuideline}
+4. CHARACTER CONSISTENCY: ${settings.syncCharacters ? 'Meticulously preserve character visual traits across all scenes.' : 'Preserve main character traits.'}
 5. CHARACTER FIELD: Output a "character" field listing all characters/entities present in the scene, separated by semicolons (e.g. "The Well; Villagers" or "" if none).
 6. CHARACTER_INFO FIELD: Output a "character_info" field describing unchanging reference traits for each character present. If none, output "".
 ${settings.alwaysCallByName ? '7. CHARACTER NAMING: Always explicitly name each character and consistently refer to them by their defined name.' : ''}
 ${settings.immutableCharacterDetails ? '8. IMMUTABLE DETAILS: Incorporate Character Sheet details preserving unchanging core physical features.' : ''}
-${settings.useEmotionsAndExpressions ? '9. EMOTIONS & EXPRESSIONS: Explicitly include tags for facial expressions (e.g., "smiling, crying, angry, sad eyes").' : ''}
-${settings.useCameraAndFraming ? '10. CAMERA & FRAMING: Use precise framing tags (e.g., "cowboy shot, close-up, extreme close-up, depth of field, looking up").' : ''}
-${settings.useLightingColor ? '11. LIGHTING & COLOR: Explicitly include tags for lighting and color (e.g., "neon lighting, cinematic lighting, muted colors").' : ''}
-12. NO VIDEO/MOTION PROMPTS: Do NOT use video or motion keywords like "camera panning", "zooming", "slow motion", or "time lapse" in the prompt. Focus ONLY on static photography and static poses.
-13. FORMATTING & QUALITY POSTFIX: Each prompt MUST conclude with this exact phrase: "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark."
-14. MOTION: Output a "motion" object describing the movement effect to apply to the image when editing the video (e.g. pan_right, zoom_in, zoom_out). This is NOT character animation and MUST NOT be included in the image prompt itself. Include "type" and "strength" (e.g., subtle, moderate).
-15. OUTPUT: Output must strictly conform to the required JSON schema with no markdown fences or extra text.`;
+${settings.useEmotionsAndExpressions ? '9. EMOTIONS & EXPRESSIONS: Explicitly describe facial expressions (e.g., "smiling, crying, angry, sad eyes").' : ''}
+${settings.useCameraAndFraming ? '10. CAMERA & FRAMING: Use precise framing descriptions (e.g., "cowboy shot, close-up, extreme close-up, depth of field, looking up").' : ''}
+${settings.useLightingColor ? '11. LIGHTING & COLOR: Explicitly describe lighting and color (e.g., "neon lighting, cinematic lighting, muted colors").' : ''}
+${videoMotionRule}
+${postfixRule}
+${motionObjectRule}
+15. OUTPUT: Output must strictly conform to the required JSON schema with no markdown fences or extra text.
+16. DIRECTING TAGS: If the scene text contains [Camera: ...], [SFX: ...], or [BGM: ...] tags, extract their contents into the "camera", "sfx", and "bgm" fields respectively. Incorporate the Camera instructions into the motion object.`;
 }
 
 // Batch prompt generation
@@ -149,6 +179,11 @@ app.post('/api/generate-batch', async (req: Request, res: Response) => {
         };
       });
 
+      const isVeo3 = settings.targetPlatform === 'veo3_video';
+      const promptEndingReq = isVeo3 
+        ? "Ensure the prompt naturally describes the motion and cinematography in the scene."
+        : 'Ensure every scene receives a high-quality, vivid prompt ending with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark."';
+
       const userPrompt = `Generate cinematic story visual prompts for the following sequential story scenes:
 
 Visual Styles: ${styleDescriptions || 'Cinematic photorealism'}
@@ -159,7 +194,7 @@ Aspect Ratio: ${settings.aspectRatio || '16:9'}
 Scenes to convert:
 ${JSON.stringify(scenesPayload, null, 2)}
 
-Ensure every scene receives a high-quality, vivid prompt ending with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info filled following all rules.`;
+${promptEndingReq} and character/character_info filled following all rules.`;
 
       const response = await generateContentWithRetry({
         model: settings.geminiModel || 'gemini-3.5-flash',
@@ -176,6 +211,9 @@ Ensure every scene receives a high-quality, vivid prompt ending with "Một ản
                 character: { type: Type.STRING },
                 character_info: { type: Type.STRING },
                 prompt: { type: Type.STRING },
+                camera: { type: Type.STRING },
+                sfx: { type: Type.STRING },
+                bgm: { type: Type.STRING },
                 detectedCharacters: {
                   type: Type.ARRAY,
                   items: { type: Type.STRING },
@@ -247,6 +285,11 @@ app.post('/api/generate-single', async (req: Request, res: Response) => {
       }
     }
 
+    const isVeo3 = settings.targetPlatform === 'veo3_video';
+    const promptEndingReq = isVeo3
+      ? "Ensure the prompt naturally describes the motion and cinematography in the scene."
+      : 'Ensure prompt ends with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark."';
+
     const userPrompt = `Generate a single cinematic visual prompt for Scene #${scene.sceneNumber}:
 Script: "${scene.text}"
 Estimated Duration: ~${scene.duration || scene.estimatedDurationSec}s
@@ -259,7 +302,7 @@ Aspect Ratio: ${settings.aspectRatio || '16:9'}
 Characters in this scene:
 ${JSON.stringify(relevantCharacters, null, 2)}
 
-Ensure prompt ends with "Một ảnh tại một thời điểm, 16:9, không chữ, logo hoặc watermark." and character/character_info are filled properly. Output in JSON format.`;
+${promptEndingReq} and character/character_info are filled properly. Output in JSON format.`;
 
     const response = await generateContentWithRetry({
       model: settings.geminiModel || 'gemini-3.5-flash',
@@ -274,6 +317,9 @@ Ensure prompt ends with "Một ảnh tại một thời điểm, 16:9, không ch
             character: { type: Type.STRING },
             character_info: { type: Type.STRING },
             prompt: { type: Type.STRING },
+            camera: { type: Type.STRING },
+            sfx: { type: Type.STRING },
+            bgm: { type: Type.STRING },
             detectedCharacters: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
@@ -320,7 +366,10 @@ app.post('/api/generate-summary', async (req: Request, res: Response) => {
       .map((g: any) => `${g.name}: ${g.fragment}`)
       .join('; ');
 
-    const userPrompt = `Create ONE comprehensive, cinematic Master Veo 3 Video Prompt that encapsulates the essence, mood, climax, and characters of this entire story:
+    const isVeo3 = settings.targetPlatform === 'veo3_video';
+    const promptTypeStr = isVeo3 ? 'Master Veo 3 Video Prompt' : 'Master Visual Prompt';
+
+    const userPrompt = `Create ONE comprehensive, cinematic ${promptTypeStr} that encapsulates the essence, mood, climax, and characters of this entire story:
 
 Story Script:
 ${story}

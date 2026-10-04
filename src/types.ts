@@ -32,6 +32,9 @@ export interface Scene {
   character_info?: string; // e.g. "The Well: giếng đá xám tối..."
   motion?: MotionConfig;
   prompt?: string;
+  camera?: string;
+  sfx?: string;
+  bgm?: string;
   status?: 'idle' | 'generating' | 'success' | 'error';
   errorMessage?: string;
   detectedCharacters?: string[];
@@ -64,6 +67,7 @@ export interface AppSettings {
   storyContinuityGoal: boolean; // Tạo các prompt có thể tạo thành một câu chuyện liền mạch
   individualCharacterSheets: boolean; // Nếu có nhiều nhân vật hãy viết Character Sheet cho từng nhân vật
   continuity: boolean; // Liên kết các cảnh cuối của prompt trước với cảnh đầu của prompt sau
+  targetPlatform: 'image_and_motion' | 'veo3_video'; // Nền tảng đích
 }
 
 export interface StoryPreset {

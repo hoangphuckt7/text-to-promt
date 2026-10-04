@@ -207,6 +207,70 @@ export function splitStoryIntoScenes(
     });
   }
 
+  // 1.5. Cấu trúc kịch bản có định dạng (Phối hợp với @story-writer)
+  // Nếu Biên kịch đã chia sẵn "SCENE 1", "CẢNH 2" -> Tool TUYỆT ĐỐI tôn trọng ranh giới này
+  const sceneSplitRegex = /(?:\n|^)(?:\*\*|##)?\s*(?:SCENE|CẢNH|Scene)\s*\d+.*?(?:\n|$)/i;
+  if (sceneSplitRegex.test(cleanStory)) {
+    const rawBlocks = cleanStory.split(sceneSplitRegex).filter(b => b.trim().length > 0);
+    let cumulativeSeconds = 0;
+    
+    return rawBlocks.map((block, idx) => {
+      const isLast = idx === rawBlocks.length - 1;
+      const sceneCode = `SC${(idx + 1).toString().padStart(2, '0')}`;
+      
+      // Để đếm thời gian chính xác, chỉ đếm số từ của phần thoại/đọc, KHÔNG đếm chữ của phần tả Visual
+      let textForDuration = block;
+      const voiceMatch = block.match(/\[(?:Voice|Text|Thoại|Lời kể|Nhật).*?\]:?\s*\*?\s*([\s\S]*?)(?=\n\*|\n\[|$)/is);
+      if (voiceMatch && voiceMatch[1].trim().length > 0) {
+        textForDuration = voiceMatch[1].trim();
+      } else {
+        // Fallback: xóa các thẻ [Tag] để chỉ còn lời thoại
+         textForDuration = block.replace(/\[.*?\]/g, '').trim();
+      }
+
+      // Đếm số từ thực tế sẽ đọc (lọc sạch tag)
+      const wordsToSpeak = countWords(textForDuration.replace(/\[.*?\]/g, ''));
+      // Tốc độ chuẩn Audio-Drama: 2.5 từ / giây
+      const durationSec = Math.max(3, Math.round(wordsToSpeak / 2.5));
+      
+      const startSec = cumulativeSeconds;
+      const endSec = cumulativeSeconds + durationSec;
+      const start_at = formatTimestampSrt(startSec);
+      const end_at = isLast ? 'AUDIO_END' : formatTimestampSrt(endSec);
+      
+      const detected = characters
+        .filter((char) => {
+          if (!char.name || !char.name.trim()) return false;
+          const regex = new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escapeRegExp(char.name.trim())}(?:[^\\p{L}\\p{N}_]|$)`, 'iu');
+          return regex.test(block);
+        })
+        .map((c) => c.name);
+
+      const characterInfoStr = characters
+        .filter((c) => detected.includes(c.name) && c.description)
+        .map((c) => `${c.name}: ${c.description}`)
+        .join('; ');
+
+      return {
+        id: idx + 1,
+        sceneNumber: idx + 1,
+        sceneCode,
+        text: block.trim(), // Gửi toàn bộ block (gồm cả mô tả Visual) cho AI tạo Prompt để nó hiểu bối cảnh
+        words: wordsToSpeak,
+        estimatedDurationSec: durationSec,
+        startTimeFormatted: formatTime(cumulativeSeconds),
+        start_at,
+        end_at,
+        subtitle_ids: [idx + 1],
+        character: detected.join('; '),
+        character_info: characterInfoStr,
+        motion: { type: 'none', strength: 'subtle' },
+        status: 'idle',
+        detectedCharacters: detected,
+      };
+    });
+  }
+
   // 2. Regular Text Processing
   const rawSentences = cleanStory
     .split(/(?<=[.!?…\n])\s+/)
@@ -242,9 +306,11 @@ export function splitStoryIntoScenes(
 
       if (!isNaN(minutes) && minutes > 0) {
         const totalDurationSec = minutes * 60;
-        const targetScenesCount = Math.max(1, Math.round(totalDurationSec / 8));
+        // Tính toán thời lượng trung bình 1 cảnh dựa trên số từ (tốc độ đọc ~2.5 từ/giây cho thể loại chậm/kinh dị)
+        const avgDuration = (settings.wordsPerScene || 22) / 2.5;
+        const targetScenesCount = Math.max(1, Math.round(totalDurationSec / avgDuration));
         const totalStoryWords = countWords(cleanStory);
-        targetWords = Math.max(12, Math.min(55, Math.round(totalStoryWords / targetScenesCount)));
+        targetWords = Math.max(12, Math.min(60, Math.round(totalStoryWords / targetScenesCount)));
       }
     }
 
@@ -300,9 +366,11 @@ export function splitStoryIntoScenes(
     const isLast = idx === rawChunks.length - 1;
     const sceneCode = `SC${(idx + 1).toString().padStart(2, '0')}`;
     const words = countWords(chunk.text);
-    let durationSec = Math.max(3, Math.round(words / 2.75));
+    
+    // Áp dụng tốc độ đọc 2.5 từ/giây (rất phù hợp cho Audio Drama/Kinh dị)
+    let durationSec = Math.max(3, Math.round(words / 2.5));
     if (settings.splitMode === 'speech_rate') {
-      durationSec = Math.max(5, Math.min(12, Math.round(words / 2.75)));
+      durationSec = Math.max(5, Math.min(12, Math.round(words / 2.5)));
     }
 
     const startSec = cumulativeSeconds;

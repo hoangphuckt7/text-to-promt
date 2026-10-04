@@ -92,6 +92,52 @@ export const GeneralSettingsCard: React.FC<GeneralSettingsCardProps> = ({
           </p>
         </div>
       </div>
+      
+      {/* NỀN TẢNG ĐÍCH */}
+      <div>
+        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+          NỀN TẢNG ĐÍCH (ĐẦU RA PROMPT):
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onSettingsChange({ ...settings, targetPlatform: 'image_and_motion' })}
+            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+              settings.targetPlatform === 'image_and_motion' || !settings.targetPlatform
+                ? 'bg-violet-600 text-white border-violet-600 shadow-xs'
+                : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <div className="font-bold text-xs flex items-center justify-center gap-1.5">🖼️ Ảnh tĩnh + Motion</div>
+            <div
+              className={`text-2xs mt-0.5 ${
+                settings.targetPlatform === 'image_and_motion' || !settings.targetPlatform ? 'text-violet-100' : 'text-slate-400 dark:text-slate-500'
+              }`}
+            >
+              Cho Stable Diffusion / ComfyUI
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSettingsChange({ ...settings, targetPlatform: 'veo3_video' })}
+            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+              settings.targetPlatform === 'veo3_video'
+                ? 'bg-violet-600 text-white border-violet-600 shadow-xs'
+                : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <div className="font-bold text-xs flex items-center justify-center gap-1.5">🎥 Video AI (Veo 3)</div>
+            <div
+              className={`text-2xs mt-0.5 ${
+                settings.targetPlatform === 'veo3_video' ? 'text-violet-100' : 'text-slate-400 dark:text-slate-500'
+              }`}
+            >
+              Sinh prompt trực tiếp mô tả chuyển động
+            </div>
+          </button>
+        </div>
+      </div>
 
       {/* MODEL TẠO PROMPT (GEMINI) */}
       <div>
