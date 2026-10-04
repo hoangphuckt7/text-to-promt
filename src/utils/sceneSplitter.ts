@@ -238,6 +238,9 @@ export function splitStoryIntoScenes(
       const start_at = formatTimestampSrt(startSec);
       const end_at = isLast ? 'AUDIO_END' : formatTimestampSrt(endSec);
       
+      // QUAN TRỌNG: Cộng dồn thời gian cho cảnh tiếp theo
+      cumulativeSeconds = endSec;
+      
       const detected = characters
         .filter((char) => {
           if (!char.name || !char.name.trim()) return false;
