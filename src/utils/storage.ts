@@ -258,7 +258,8 @@ export function exportScenesToCsv(scenes: Scene[], storyTitle = 'veo3_prompts'):
 export function formatSceneForExport(s: Scene, idx: number, total: number) {
   const isLast = idx === total - 1;
   const sceneCode = s.sceneCode || `SC${(idx + 1).toString().padStart(2, '0')}`;
-  return {
+  
+  const result: any = {
     id: sceneCode,
     character: s.character ?? (s.detectedCharacters ? s.detectedCharacters.join('; ') : ''),
     character_info: s.character_info ?? '',
@@ -268,6 +269,12 @@ export function formatSceneForExport(s: Scene, idx: number, total: number) {
     end_at: s.end_at || (isLast ? 'AUDIO_END' : '00:00:00,000'),
     motion: s.motion || { type: 'none', strength: 'subtle' },
   };
+
+  if (s.camera) result.camera = s.camera;
+  if (s.sfx) result.sfx = s.sfx;
+  if (s.bgm) result.bgm = s.bgm;
+
+  return result;
 }
 
 export function getScenesJsonString(scenes: Scene[]): string {

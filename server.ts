@@ -99,6 +99,10 @@ function buildSystemInstruction(settings: any): string {
     ? '14. MOTION OBJECT: Since this is a video prompt, output a "motion" object with type "none" and strength "none", as the motion is already described in the text prompt.'
     : '14. MOTION OBJECT: Output a "motion" object describing the movement effect to apply to the image when editing the video (e.g. pan_right, zoom_in, zoom_out). This is NOT character animation and MUST NOT be included in the image prompt itself. Include "type" and "strength" (e.g., subtle, moderate).';
 
+    const audioVeo3Rule = isVeo3
+      ? '15. AUDIO IN PROMPT: If the script contains [BGM/SFX], [SFX], or [BGM] tags, explicitly include a sound description at the end of the "prompt" text (e.g. "Audio: Eerie white noise and screeching metal") so Veo 3 can generate the video with sound.'
+      : '15. AUDIO: Do not include audio instructions in the visual prompt.';
+
   return `${roleDesc}
 
 Key Guidelines:
@@ -116,8 +120,9 @@ ${settings.useLightingColor ? '11. LIGHTING & COLOR: Explicitly describe lightin
 ${videoMotionRule}
 ${postfixRule}
 ${motionObjectRule}
-15. OUTPUT: Output must strictly conform to the required JSON schema with no markdown fences or extra text.
-16. DIRECTING TAGS: If the scene text contains [Camera: ...], [SFX: ...], or [BGM: ...] tags, extract their contents into the "camera", "sfx", and "bgm" fields respectively. Incorporate the Camera instructions into the motion object.`;
+${audioVeo3Rule}
+16. OUTPUT: Output must strictly conform to the required JSON schema with no markdown fences or extra text.
+17. DIRECTING TAGS: If the scene text contains [Camera: ...], [BGM/SFX: ...], [SFX: ...], or [BGM: ...] tags, extract their contents into the "camera", "sfx", and "bgm" fields respectively. Incorporate the Camera instructions into the motion object.`;
 }
 
 // Batch prompt generation
